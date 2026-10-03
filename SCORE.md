@@ -12,6 +12,4 @@ sudo docker run --rm \
   "$AURA" /workspace/rule-lantern/<script>.aura
 ```
 
-Arena L: B strikes + max 36 + wait fatigue chip from turn >=10.
-`lantern.aura` defines the duel; measure with a full-file oneshot score script that ends in `(display "TAG=")(display (play))(newline)`.
-Host glibc is older than the Soft binary, so run inside the v1.0.9 image. Soft tip: `6a13b3d`.
+Arena M: B strikes, max 36, opp deals 3 from turn >=12 (else 2). Soft tip `6a13b3d`.

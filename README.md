@@ -8,9 +8,9 @@ Each turn the rule sees `(hp ehp turn)` and returns an action:
 - `1` strike (deal 2)
 - `2` dodge (negate the opponent's strike)
 
-**Arena L:** B strike pattern (odd always; even from turn ≥5), max **36** turns, plus **fatigue**:
-from turn ≥10, choosing wait also deals **1 chip** to self (late wait-banking tax).
-Score is damage dealt plus turns lived. Higher is better. HP/EHP clamped 0-8; start hp=6 ehp=8.
+**Arena M:** B strikes (odd always; even from turn ≥5), max **36** turns.
+Opponent deals **2** through turn 11 and **3** from turn ≥12 when striking. Dodge still negates.
+Score is damage dealt plus turns lived. HP/EHP clamped 0-8; start hp=6 ehp=8.
 
 ## Loop
 
@@ -19,8 +19,8 @@ Score is damage dealt plus turns lived. Higher is better. HP/EHP clamped 0-8; st
 3. Keep the body only when the Soft score is strictly higher than the kept generation.
 4. Commit the winner into `lantern.aura` and append a measured row to `generations.md`.
 
-Scores are invented nowhere. Soft tip for measured rows: `6a13b3d`, binary `/workspace/aura-grok/build/aura`, run inside `ghcr.io/cybrid-systems/dev:v1.0.9` with `AURA_PATH=/workspace/aura-grok/lib` and `AURA_PIPELINE_STRICT=0`.
+Scores are invented nowhere. Soft tip: `6a13b3d`.
 
 ## Status
 
-Kept generation **22**, Soft score **44** (arena L ceiling; no Soft strict improve over finish-on-last). See `generations.md`.
+Kept generation **22**, Soft score **44** (arena M). Finish-on-last still the Soft ceiling. See `generations.md`.
