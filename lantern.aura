@@ -1,18 +1,16 @@
-; lantern - a tiny duel whose only evolving part is (rule hp ehp turn).
+; lantern - evolving part is (rule hp ehp turn).
 ; Actions: 0 wait, 1 strike, 2 dodge.
-; Opponent strikes odd always; even from turn >=5.
-; Opp damage: 2 before turn 6; 3 from turn >=6 when striking. Dodge negates base hit.
-; Arena P attrition: from turn >=20, a successful dodge still costs 1 hp chip.
-; Strike deals 2, wait heals 1 (cap 8).
-; Score = damage dealt + turns lived. Max 48 turns (arena P).
-; HP/EHP clamped 0-8; start hp=6 ehp=8.
-; Kept generation: 30 (measured Soft score 30 @ aura 6a13b3d).
-; Rule: strike 2,4,5,23 else dodge — Soft-kill before dodge-chip drains you.
-; Note: Soft 2,4,5,48 (O finish-last) Soft-scored 28 under P and lost the keep.
+; B strikes: odd always, even from turn >=5.
+; Opp damage 2 before turn 6, else 3. Dodge negates the base hit.
+; Arena Q: from turn >=15 a successful dodge still costs 1 hp chip.
+; Strike deals 2, wait heals 1 (cap 8). Max 48 turns.
+; Score = damage + turns lived. Start hp=6 ehp=8, clamp 0-8.
+; Kept generation: 31 (measured Soft score 25 @ aura 6a13b3d).
+; Rule: strike turns 2,4,5,18 else dodge.
 (export play rule)
 
 (define (rule hp ehp turn)
-  (cond ((or (= turn 2) (= turn 4) (= turn 5) (= turn 23)) 1)
+  (cond ((or (= turn 2) (= turn 4) (= turn 5) (= turn 18)) 1)
         (#t 2)))
 
 (define (opp-strike? turn)
@@ -23,7 +21,7 @@
   (if (>= turn 6) 3 2))
 
 (define (dodge-chip turn action them)
-  (if (and (>= turn 20) them (= action 2)) 1 0))
+  (if (and (>= turn 15) them (= action 2)) 1 0))
 
 (define (clamp n lo hi)
   (cond ((< n lo) lo)

@@ -11,4 +11,4 @@ sudo docker run --rm \
   /workspace/aura-grok/build/aura /workspace/rule-lantern/<script>.aura
 ```
 
-Arena P: B strikes, dmg 3 from turn >=6, max 48, dodge chip 1 from turn >=20. Soft tip `6a13b3d`.
+Arena Q: B strikes, dmg 3 from turn >=6, max 48, dodge chip from turn >=15. Soft tip `6a13b3d`.
