@@ -52,7 +52,7 @@ Arena B ceiling **20**. Gen 5 hit it.
 
 No strict improve under D; raised match length instead.
 
-## Arena E (current): arena B strikes; max **14** turns
+## Arena E: arena B strikes; max **14** turns
 
 | gen | status | score | Soft tip | rule | note |
 |-----|--------|-------|----------|------|------|
@@ -65,6 +65,18 @@ No strict improve under D; raised match length instead.
 | 9b | discarded | 22 | 6a13b3d | strike on turns 2,4,8,14; else dodge | equal to kept 22 |
 
 Arena E ceiling **22** (8 damage + 14 lived). Gen 9 hit it.
+
+## Arena F (current): arena B strikes; max **16** turns
+
+| gen | status | score | Soft tip | rule | note |
+|-----|--------|-------|----------|------|------|
+| 10 | measured baseline | 22 | 6a13b3d | strike 2,4,6,14; else dodge | gen 9 rule under longer match |
+| 10b | discarded | 16 | 6a13b3d | always dodge | naive |
+| 10c | discarded | 20 | 6a13b3d | strike 2,4,6,12 | early kill under F |
+| 11 | **kept** | **24** | 6a13b3d | strike on turns 2,4,6,16; else dodge | delay kill to turn 16 |
+| 11b | discarded | 24 | 6a13b3d | strike on turns 2,4,8,16; else dodge | equal to kept 24 |
+
+Arena F ceiling **24** (8 damage + 16 lived). Gen 11 hit it.
 
 ## How a generation lands
 
