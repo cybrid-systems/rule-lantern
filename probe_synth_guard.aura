@@ -1,0 +1,95 @@
+
+; synthesize:optimize guard. `rule` is the duel player, not std/rule.
+; Log lines are also written to synth_guard.log so a fatal (play)
+; after optimize cannot drop them.
+
+(define *log* "")
+
+(define (log-line k v)
+  (display k)
+  (display "=")
+  (display v)
+  (newline)
+  (set! *log*
+        (string-append *log* k "="
+                       (cond ((string? v) v)
+                             ((number? v) (number->string v))
+                             ((equal? v #t) "#t")
+                             ((equal? v #f) "#f")
+                             (#t "?"))
+                       "\n"))
+  (write-file "/workspace/rule-lantern/synth_guard.log" *log*))
+
+(define *needles*
+  (list "taken (+ base-taken chip)"
+        "opp-damage turn"
+        "step hp ehp turn action"
+        "bonus (if (and (<= ehp2 0) (>= hp2 2)) 2 0)"))
+
+(define (flag s n)
+  (if (and (string? s) (string-contains? s n)) 1 0))
+
+(define (show-needles tag s)
+  (let loop ((ns *needles*))
+    (when (pair? ns)
+      (log-line (string-append tag " " (car ns)) (flag s (car ns)))
+      (loop (cdr ns)))))
+
+(define (flags-hold? a b)
+  (let loop ((ns *needles*))
+    (if (null? ns) #t
+        (if (and (= (flag a (car ns)) 1) (= (flag b (car ns)) 1))
+            (loop (cdr ns))
+            #f))))
+
+(define *src-file*
+  (try (read-file "/workspace/rule-lantern/lantern.aura") (catch (e) e)))
+(define *sc*
+  (if (string? *src-file*)
+      (try (set-code *src-file*) (catch (e) e))
+      "read-failed"))
+(log-line "LANTERN_SET" (if (equal? *sc* #t) "ok" "fail"))
+(if (equal? *sc* #t)
+    (try (eval-current) (catch (e) (log-line "EVAL" "err")))
+    #f)
+
+(define *q0* (try (query:node-type "Define") (catch (e) "err")))
+(log-line "QUERY_BEFORE_IDS" (if (and (pair? *q0*) (number? (car *q0*))) 1 0))
+
+(define *src0* (try (current-source :workspace) (catch (e) "")))
+(log-line "SRC0_LEN" (if (string? *src0*) (string-length *src0*) -1))
+(show-needles "BEFORE" *src0*)
+(define *play0* (try (play) (catch (e) -1)))
+(log-line "PLAY_BEFORE" (if (number? *play0*) *play0* -1))
+
+(define *syn*
+  (try (synthesize:optimize "rule" "maximize survival") (catch (e) "err")))
+(log-line "SYNTH_CALLED" 1)
+(display "SYNTH_RETURN=")
+(display *syn*)
+(newline)
+
+(define *q1* (try (query:node-type "Define") (catch (e) "err")))
+(log-line "QUERY_AFTER_IDS" (if (and (pair? *q1*) (number? (car *q1*))) 1 0))
+
+(define *src1* (try (current-source :workspace) (catch (e) "")))
+(log-line "SRC1_LEN" (if (string? *src1*) (string-length *src1*) -1))
+(show-needles "AFTER" *src1*)
+(log-line "SRC_EQ" (if (equal? *src0* *src1*) 1 0))
+(log-line "FLAGS_HOLD" (if (flags-hold? *src0* *src1*) 1 0))
+
+(define *play1* (try (play) (catch (e) -1)))
+(log-line "PLAY_AFTER" (if (number? *play1*) *play1* -1))
+; Same source and a different (play) is not Arena T. Do not accept it.
+(if (and (flags-hold? *src0* *src1*)
+         (equal? *src0* *src1*)
+         (number? *play0*)
+         (number? *play1*)
+         (= *play0* *play1*))
+    (log-line "NATIVE_SYNTH" "accept-unchanged")
+    (if (and (flags-hold? *src0* *src1*)
+             (not (equal? *src0* *src1*))
+             (number? *play1*)
+             (>= *play1* 0))
+        (log-line "NATIVE_SYNTH" "accept-rule-edit")
+        (log-line "NATIVE_SYNTH" "reject")))

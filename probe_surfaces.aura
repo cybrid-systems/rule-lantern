@@ -1,0 +1,91 @@
+; One Soft process, sandbox off. Probes std/llm, std/hot-update,
+; std/refactor, and synthesize:optimize with a step/play body guard.
+; `rule` is the duel player, not std/rule. A synthesize result is
+; accepted only when query + source needles say step and play are
+; unchanged AND (play) vs opponent B is a number.
+
+(require "std/llm" all:)
+(require "std/hot-update" all:)
+(require "std/refactor" all:)
+
+(define (show k v)
+  (display k)
+  (display "=")
+  (display v)
+  (newline))
+
+(define (has? s needle)
+  (and (string? s) (string-contains? s needle)))
+
+(define *step-needles*
+  (list "(define (step hp ehp turn action)"
+        "(taken (+ base-taken chip))"
+        "(opp-damage turn)"
+        "(define (play)"
+        "(step hp ehp turn action)"))
+
+(define (needles-ok? s)
+  (let loop ((ns *step-needles*))
+    (if (null? ns) #t
+        (if (has? s (car ns)) (loop (cdr ns)) #f))))
+
+(define (defs-n)
+  (let ((q (try (query:node-type "Define") (catch (e) e))))
+    (if (and (pair? q) (number? (car q))) (length q) q)))
+
+(show "LLM_KEY_LEN"
+      (let ((k (getenv "LLM_API_KEY")))
+        (if (string? k) (string-length k) 0)))
+(show "LLM_CALL" (try (aura-llm-call "ping") (catch (e) e)))
+(show "LLM_CHAT" (try (llm:chat "sys" "ping") (catch (e) e)))
+(show "LLM_STATS" (try (llm:call-stats) (catch (e) e)))
+
+(show "HOT_CFG" (try (hot-update:make-config 1 2 #f) (catch (e) e)))
+(show "HOT_VER" (try (hot-update:get-module-version) (catch (e) e)))
+(show "HOT_HEALTH" (try (hot-update:health) (catch (e) e)))
+
+(define *tiny* "(define (scratch-name x) x)")
+(define *sc-tiny* (try (set-code *tiny*) (catch (e) e)))
+(show "REFACTOR_SET" *sc-tiny*)
+(if (equal? *sc-tiny* #t) (try (eval-current) (catch (e) e)) #f)
+(show "REFACTOR"
+      (try (refactor:rename-var "scratch-name" "scratch-renamed") (catch (e) e)))
+(show "REFACTOR_SRC" (try (current-source :workspace) (catch (e) e)))
+
+(define *src-file*
+  (try (read-file "/workspace/rule-lantern/lantern.aura") (catch (e) e)))
+(define *sc*
+  (if (string? *src-file*)
+      (try (set-code *src-file*) (catch (e) e))
+      "read-failed"))
+(show "LANTERN_SET" (if (equal? *sc* #t) "ok" *sc*))
+(if (equal? *sc* #t) (try (eval-current) (catch (e) e)) #f)
+
+(define *src0* (try (current-source :workspace) (catch (e) "")))
+(show "QUERY_DEFS_BEFORE" (defs-n))
+(show "NEEDLES_BEFORE" (if (needles-ok? *src0*) 1 0))
+(show "PLAY_BEFORE" (try (play) (catch (e) e)))
+
+(define *syn*
+  (try (synthesize:optimize "rule" "maximize survival") (catch (e) e)))
+(show "SYNTH_RETURN" *syn*)
+
+(define *src1* (try (current-source :workspace) (catch (e) "")))
+(show "QUERY_DEFS_AFTER" (defs-n))
+(show "NEEDLES_AFTER" (if (needles-ok? *src1*) 1 0))
+(show "SRC_EQ" (if (equal? *src0* *src1*) 1 0))
+
+(define *guard* (and (needles-ok? *src0*) (needles-ok? *src1*)))
+(if *guard*
+    (let ((scored (try (play) (catch (e) e))))
+      (show "PLAY_VS_B_GUARDED" scored)
+      (show "NATIVE_SYNTH"
+            (if (number? scored) "accept" "reject-play-not-number")))
+    (begin
+      (show "NATIVE_SYNTH" "reject-step-or-play-changed")
+      (if (string? *src-file*)
+          (begin
+            (try (set-code *src-file*) (catch (e) e))
+            (try (eval-current) (catch (e) e))
+            (show "PLAY_VS_B_RESTORED" (try (play) (catch (e) e))))
+          (show "PLAY_VS_B_RESTORED" "no-source"))))
