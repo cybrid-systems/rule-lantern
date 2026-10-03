@@ -2,9 +2,13 @@
 ; Actions: 0 wait, 1 strike, 2 dodge.
 ; Opponent strikes on every odd turn; from turn 5 onward also strikes on even turns.
 ; Strike deals 2, dodge negates a strike, wait heals 1 (cap 8).
-; Score = damage dealt + turns lived. Higher is better. Max 36 turns (arena K).
+; Arena L fatigue: from turn >=10, waiting (action 0) also deals 1 chip to self
+; (late wait-banking tax). Idle-only chip is a no-op under B strikes after turn 5,
+; so Soft uses wait-any chip from turn >=10.
+; Score = damage dealt + turns lived. Higher is better. Max 36 turns (arena L).
 ; HP/EHP clamped 0-8; start hp=6 ehp=8.
-; Kept generation: 21 (measured Soft score 44 @ aura 6a13b3d) under arena K.
+; Kept generation: 22 (measured Soft score 44 @ aura 6a13b3d) under arena L —
+; carry-forward of finish-on-last; no Soft proposal strictly beat 44 (ceiling).
 (export play rule)
 
 (define (rule hp ehp turn)
@@ -15,6 +19,9 @@
   (or (= (modulo turn 2) 1)
       (>= turn 5)))
 
+(define (fatigue-chip turn action)
+  (if (and (>= turn 10) (= action 0)) 1 0))
+
 (define (clamp n lo hi)
   (cond ((< n lo) lo)
         ((> n hi) hi)
@@ -23,9 +30,11 @@
 (define (step hp ehp turn action)
   (let* ((them (opp-strike? turn))
          (dealt (if (= action 1) 2 0))
-         (taken (cond ((and them (= action 2)) 0)
-                      (them 2)
-                      (#t 0)))
+         (chip (fatigue-chip turn action))
+         (base-taken (cond ((and them (= action 2)) 0)
+                           (them 2)
+                           (#t 0)))
+         (taken (+ base-taken chip))
          (healed (if (= action 0) 1 0))
          (hp2 (clamp (- (+ hp healed) taken) 0 8))
          (ehp2 (clamp (- ehp dealt) 0 8)))

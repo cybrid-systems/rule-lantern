@@ -8,9 +8,9 @@ Each turn the rule sees `(hp ehp turn)` and returns an action:
 - `1` strike (deal 2)
 - `2` dodge (negate the opponent's strike)
 
-**Arena K:** the opponent strikes on every odd turn, and also on even turns from turn 5 onward.
-A game lasts at most **36** turns. Score is damage dealt plus turns lived. Higher is better.
-HP and EHP are clamped 0-8; start hp=6 ehp=8.
+**Arena L:** B strike pattern (odd always; even from turn ≥5), max **36** turns, plus **fatigue**:
+from turn ≥10, choosing wait also deals **1 chip** to self (late wait-banking tax).
+Score is damage dealt plus turns lived. Higher is better. HP/EHP clamped 0-8; start hp=6 ehp=8.
 
 ## Loop
 
@@ -23,4 +23,4 @@ Scores are invented nowhere. Soft tip for measured rows: `6a13b3d`, binary `/wor
 
 ## Status
 
-Kept generation **21**, Soft score **44** (arena K). See `generations.md`.
+Kept generation **22**, Soft score **44** (arena L ceiling; no Soft strict improve over finish-on-last). See `generations.md`.
