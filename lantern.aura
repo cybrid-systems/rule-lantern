@@ -1,16 +1,15 @@
 ; lantern - a tiny duel whose only evolving part is (rule hp ehp turn).
 ; Actions: 0 wait, 1 strike, 2 dodge.
-; Opponent strikes on every odd turn; from turn 5 onward also strikes on even turns.
-; Opp damage: 2 on turns 1-5; 3 from turn >=6 when striking. Dodge negates.
+; Opponent strikes odd always; even from turn >=5.
+; Opp damage: 2 before turn 6; 3 from turn >=6 when striking. Dodge negates.
 ; Strike deals 2, wait heals 1 (cap 8).
-; Score = damage dealt + turns lived. Max 40 turns (arena N).
+; Score = damage dealt + turns lived. Max 48 turns (arena O).
 ; HP/EHP clamped 0-8; start hp=6 ehp=8.
-; Kept generation: 27 (measured Soft score 48 @ aura 6a13b3d).
-; Rule: strike 2,4,5,40 else dodge — third strike before dmg3 so late kill Soft-survives.
+; Kept generation: 28 (measured Soft score 56 @ aura 6a13b3d).
 (export play rule)
 
 (define (rule hp ehp turn)
-  (cond ((or (= turn 2) (= turn 4) (= turn 5) (= turn 40)) 1)
+  (cond ((or (= turn 2) (= turn 4) (= turn 5) (= turn 48)) 1)
         (#t 2)))
 
 (define (opp-strike? turn)
@@ -38,7 +37,7 @@
 
 (define (play)
   (let loop ((hp 6) (ehp 8) (turn 1) (score 0))
-    (cond ((or (<= hp 0) (<= ehp 0) (> turn 40)) score)
+    (cond ((or (<= hp 0) (<= ehp 0) (> turn 48)) score)
           (#t
            (let* ((action (rule hp ehp turn))
                   (dealt (if (= action 1) 2 0))

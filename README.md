@@ -1,26 +1,16 @@
 # rule-lantern
 
-A tiny duel that lives as an Aura program. The only thing that evolves is `rule`.
-
-Each turn the rule sees `(hp ehp turn)` and returns an action:
+A tiny duel. The evolving part is `rule`.
 
 - `0` wait (heal 1, cap 8)
 - `1` strike (deal 2)
-- `2` dodge (negate the opponent's strike)
+- `2` dodge (negate the opponent strike)
 
-**Arena N:** B strikes (odd always; even from turn ≥5), max **40** turns.
-Opponent deals **2** on turns 1–5 and **3** from turn ≥6 when striking. Dodge still negates.
-Score is damage dealt plus turns lived. HP/EHP clamped 0-8; start hp=6 ehp=8.
+**Arena O:** B strikes, opp deals 3 from turn >=6 (else 2), max **48** turns.
+Score = damage dealt + turns lived. Start hp=6 ehp=8, clamp 0-8.
 
-## Loop
-
-1. A guide proposes a new `rule` body.
-2. Soft runs `play` on that body (oneshot for now).
-3. Keep the body only when the Soft score is strictly higher than the kept generation.
-4. Commit the winner into `lantern.aura` and append a measured row to `generations.md`.
-
-Scores are invented nowhere. Soft tip: `6a13b3d`.
+Soft tip `6a13b3d`. Keep only on a strictly higher Soft score.
 
 ## Status
 
-Kept generation **27**, Soft score **48** (arena N). See `generations.md`.
+Kept generation **28**, Soft score **56** (arena O). See `generations.md`.
