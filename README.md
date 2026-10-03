@@ -25,10 +25,10 @@ In-session fitness is `(play)`: damage dealt + turns lived + clean-win bonus.
 | In-session fitness | The number `(play)` returns inside that process. Not a property of the binary. |
 
 `AURA_SANDBOX=off` is the Soft switch in this tree (`security_defaults.hh`).
-The production default is Restricted. Restricted does not give this file a
-workspace: `ast:snapshot` returns -1 `:no-workspace`, user `mutate:rebind`
-is capability-denied, and a `hot-strategy:swap!` that returns `#t` with
-snap -1 does not change the live `rule`. Measured in
+The production default is Restricted. Restricted does not give an argv file a workspace: `current-source`
+`:workspace` length was 0 and `ast:snapshot` returned -1. `(load …)` of
+`lantern.aura` is effect-denied (`mutate not granted`), and user
+`mutate:rebind` is capability-denied (`kCapSandbox`). Measured in
 `evolve_restricted.aura` as `NATIVE_RESTRICTED_OK=0`. The evolving run adds
 `-e AURA_SANDBOX=off` so `set-code` can install `lantern.aura`.
 
@@ -65,22 +65,31 @@ process.
   `synthesize:optimize` (returned `(1 . 30)`, not kept — a separate probe
   showed it rewrote `step` from `+` to `/`).
 
-## Capability matrix (tip `6a13b3d`, run 2 unless noted)
+Arms race (`evolve_arms.aura`, run 3, same sandbox-off process): four rounds, PSO on `rule` then ant on `opp-policy`, stop early only if both scores stay at that round's incoming `(play)`. They did not. Best remeasure against B is still 27 (turns 2, 4, 5, 20). The round-4 rule scores 22 against B. Details in `generations_native.md`.
+
+RSI (`evolve_rsi.aura`, run 4, same sandbox-off process): four rounds, PSO and ant alternating sides, pop 4. A step-body gate rejects a swap whose workspace no longer has `base-taken` / `dodge-chip` / `(taken (+ base-taken chip))` and calls `heal!`. The one reject was a probe that installed a no-op `step`; swarm swaps passed. Best remeasure against B is 27. The final rule scores 26 against B. Details in `RSI.md` and `generations_native.md`.
+
+## Capability matrix (tip `6a13b3d`)
 
 | Surface | Status |
 |---------|--------|
-| `set-code` + `eval-current` with `AURA_SANDBOX=off` | Soft-used. `SET_CODE=ok`. |
-| `std/swarm` kind `pso` | Soft-used on `rule` and `opp-policy`. |
-| `std/swarm` kind `ant` | Soft-used on both sides. |
-| `std/swarm` kind `grid` | Soft-used on both sides. |
-| `std/swarm` kind `abc` | Soft-used on both sides. |
-| `hot-strategy:swap!` / `heal!` / `register!` | Soft-used. `NATIVE_SWAP_OK=74/74`, heal fail 0. |
-| `fiber:spawn` / `fiber:join` and `swarm` `"parallel" #t` | Soft-used. `NATIVE_FIBER=1`. Confirm play 23, not kept. |
-| `agent:closed-loop-once` | Soft-used before the swarm. Commit. `(play)` stayed 27. Requiring `std/agent` after the mutate session has aborted (`api-url` unbound); the script loads it first. |
-| `std/orchestrator` `orch:step` | Soft-used. Returned 7. |
+| `set-code` + `eval-current` with `AURA_SANDBOX=off` | Soft-used. `SET_CODE=ok` (runs 2 and 3). |
+| `std/swarm` kind `pso` | Soft-used on `rule` and `opp-policy` (run 2 and the arms race). |
+| `std/swarm` kind `ant` | Soft-used on both sides in run 2; opp side in the arms race. |
+| `std/swarm` kind `grid` | Soft-used on both sides (run 2). |
+| `std/swarm` kind `abc` | Soft-used on both sides (run 2). |
+| `hot-strategy:swap!` / `heal!` / `register!` | Soft-used. Run 2 `74/74`. Arms race `48/48`, heal fail 0. |
+| `fiber:spawn` / `fiber:join` | Soft-used. Arms race spawn/join returned 41. Swarm fitness in that run was serial. |
+| `swarm` `"parallel" #t` pop eval | Soft-used in run 2 only. Confirm play 23, not kept. |
+| RSI step gate | Soft-used in run 4. Probe swap of `step` lost the Arena T pattern, `RSI_GATE_REJECT=step`, heal restored `(play)` 27. Swarm swaps did not reject. `RSI_VS_B=27`. |
+| `agent:closed-loop-once` | Soft-used in run 2. Commit. `(play)` stayed 27. |
+| `std/orchestrator` `orch:step` | Soft-used in run 2. Returned 7. |
 | `colony:search` | Soft-probed-fail. `(#f  colony:1var)`. |
-| `synthesize:optimize` | Soft-probed. Returned `(1 . 30)`. Not kept: the applied source changed Arena T `step`. |
-| Restricted, no `set-code` (`evolve_restricted.aura`) | Soft-probed-fail. `NATIVE_RESTRICTED_OK=0`. |
+| `synthesize:optimize` | Soft-probed-fail as a score. Run 2 returned `(1 . 30)` by editing `step` (not kept). Run 3 guard: source unchanged (`SRC_EQ=1`), `(play)` moved 27 to 54, return `(0 . 1000.0006958942241)`, `NATIVE_SYNTH=reject`. The 54 is not vs B. |
+| `std/llm` `aura-llm-call` / `llm:chat` | Soft-probed-fail. No key in the container. Call returned empty. Chat ok `#f`, error `empty`. |
+| `std/hot-update` | Soft-probed. `make-config` returned `(1 2 #f)`. `aot:get-module-version` and `aot:get-region-mask` unbound. `hot-update:health` unbound. |
+| `std/refactor` `refactor:rename-var` | Soft-probed-fail. Returned 1. Workspace source still named `scratch-name`. Process then exit 1, `invalid closure`. |
+| Restricted, no `set-code` | Soft-probed-fail. `NATIVE_RESTRICTED_OK=0`. Argv does not install a workspace (`ARGV_WS_LEN=0`). `(load lantern.aura)` is `effect-denied: mutate not granted`. `mutate:rebind` needs `kCapSandbox`. |
 | `std/rule` DSL | Not loaded. The duel function is also named `rule`. |
 
 ## Run
