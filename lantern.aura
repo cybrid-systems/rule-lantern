@@ -1,18 +1,19 @@
 ; lantern — a tiny duel whose only evolving part is (rule hp ehp turn).
 ; Actions: 0 wait, 1 strike, 2 dodge.
-; Opponent strikes on odd turns, waits on even.
+; Opponent strikes on every odd turn; from turn 5 onward also strikes on even turns.
 ; Strike deals 2, dodge negates a strike, wait heals 1 (cap 8).
 ; Score = damage dealt + turns lived. Higher is better. Max 12 turns.
-; Kept generation: 2 (measured Soft score 20 @ aura 6a13b3d).
+; HP/EHP clamped 0–8; start hp=6 ehp=8.
+; Kept generation: 5 (measured Soft score 20 @ aura 6a13b3d) under raised arena.
 (export play rule)
 
 (define (rule hp ehp turn)
-  (if (= (modulo turn 2) 1)
-      2
-      (if (< turn 6) 0 1)))
+  (cond ((or (= turn 2) (= turn 4) (= turn 6) (= turn 12)) 1)
+        (#t 2)))
 
 (define (opp-strike? turn)
-  (= (modulo turn 2) 1))
+  (or (= (modulo turn 2) 1)
+      (>= turn 5)))
 
 (define (clamp n lo hi)
   (cond ((< n lo) lo)

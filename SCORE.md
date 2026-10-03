@@ -9,7 +9,9 @@ sudo docker run --rm \
   -e AURA_PATH=/workspace/aura-grok/lib \
   -e AURA_PIPELINE_STRICT=0 \
   ghcr.io/cybrid-systems/dev:v1.0.9 \
-  "$AURA" lantern.aura
+  "$AURA" /workspace/rule-lantern/<script>.aura
 ```
 
-`lantern.aura` currently only defines the duel. Append a driver form or paste `(display (play))` via a short score script when measuring a proposal. Host glibc is older than the Soft binary, so run inside the v1.0.9 image.
+Arena B: opponent strikes on every odd turn and also on even turns from turn ≥5.
+`lantern.aura` defines the duel; measure with a full-file oneshot score script that ends in `(display "TAG=")(display (play))(newline)`.
+Host glibc is older than the Soft binary, so run inside the v1.0.9 image. Soft tip: `6a13b3d`.
