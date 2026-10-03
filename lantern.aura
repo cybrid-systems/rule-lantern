@@ -1,26 +1,30 @@
-; lantern - evolving part is (rule hp ehp turn).
-; Actions: 0 wait, 1 strike, 2 dodge.
-; B strikes: odd always, even from turn >=5.
-; Opp damage 2 before turn 6, else 3. Dodge negates the base hit.
-; Arena T: Q chip (dodge costs 1 hp from turn >=15) plus clean-win bonus.
-; Bonus: +2 score on the turn ehp hits 0 if hp is still >=2.
-; Start hp=8 (was 6 under S/R) so Soft clean-win Soft-path can Soft-reach hp>=2.
-; Strike deals 2, wait heals 1 (cap 8). Max 48 turns.
-; Score = damage + turns lived + clean bonus. Clamp 0-8.
-; Kept generation: 34 (measured Soft score 27 @ aura 6a13b3d).
-; Rule: strike 2,4,5,20 else dodge. Soft +2 fired earlier on gen33 (kill@16 hp=2 Soft26).
-(export play rule)
+; lantern duel — Arena T physics, in-session fitness via (play).
+; Soft is the Aura Soft-sandbox binary. Fitness is (play) in this process,
+; not an external oneshot "Soft score".
+; Actions: 0 wait (heal 1, cap 8), 1 strike (deal 2), 2 dodge.
+; Fixed arena: start hp=8, dodge chip 1 when dodging a strike from turn >=15,
+; clean-win +2 if ehp hits 0 with hp still >=2, max 48 turns.
+; Initial opponent matches Arena T "B": odd turns always strike, even turns
+; from turn >=5, damage 2 before turn 6 else 3. That schedule lives in
+; opp-policy so a later hot-strategy swap can replace it.
+; Initial rule: strike on turns 2,4,5,20 else dodge.
+(export play rule opp-policy opp-strike? opp-damage)
 
 (define (rule hp ehp turn)
   (cond ((or (= turn 2) (= turn 4) (= turn 5) (= turn 20)) 1)
         (#t 2)))
 
+(define (opp-policy turn)
+  (if (or (= (modulo turn 2) 1) (>= turn 5))
+      (if (>= turn 6) 3 2)
+      0))
+
 (define (opp-strike? turn)
-  (or (= (modulo turn 2) 1)
-      (>= turn 5)))
+  (> (opp-policy turn) 0))
 
 (define (opp-damage turn)
-  (if (>= turn 6) 3 2))
+  (let ((p (opp-policy turn)))
+    (if (> p 0) p 2)))
 
 (define (dodge-chip turn action them)
   (if (and (>= turn 15) them (= action 2)) 1 0))
