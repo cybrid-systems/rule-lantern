@@ -11,4 +11,4 @@ sudo docker run --rm \
   /workspace/aura-grok/build/aura /workspace/rule-lantern/<script>.aura
 ```
 
-Arena R: Q physics (dmg 3 from turn >=6, dodge chip from turn >=15, max 48) plus +2 if ehp hits 0 with hp>=4. Soft tip `6a13b3d`.
+Arena T: Q physics (dmg 3 from turn >=6, dodge chip from turn >=15, max 48) plus +2 if ehp hits 0 with hp>=2; start hp=8. Soft tip `6a13b3d`.

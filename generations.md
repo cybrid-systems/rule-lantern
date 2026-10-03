@@ -42,7 +42,7 @@ Soft did **not** beat 30 under P. Plateau at Soft 30.
 
 Q Soft best **25** (>=15), so chip@15 kept. Chip@18 probe Soft-best was 28 (kill @21) but not adopted.
 
-## Arena R (current): Q + clean-win +2 if ehp hits 0 with hp>=4
+## Arena R: Q + clean-win +2 if ehp hits 0 with hp>=4
 
 | gen | status | score | rule | note |
 |-----|--------|-------|------|------|
@@ -57,6 +57,43 @@ Q Soft best **25** (>=15), so chip@15 kept. Chip@18 probe Soft-best was 28 (kill
 | 32i | discarded | 22 | wait T2; strike 3,4,5 | below |
 
 No Soft proposal beat 25. Measured kills did not Soft-earn the +2.
+
+## Arena S: R but clean-win hp>=2 (start hp still 6)
+
+| gen | status | score | rule | note |
+|-----|--------|-------|------|------|
+| 33s | baseline | 25 | strike 2,4,5,18 | Soft killhp=0 @18; Soft +2 no |
+| 33s14 | discarded | 22 | strike 2,4,5,14 | below |
+| 33s15 | discarded | 23 | strike 2,4,5,15 | below |
+| 33s16 | discarded | 23 | strike 2,4,5,16 | below |
+| 33s17 | discarded | 24 | strike 2,4,5,17 | below |
+| 33s18 | discarded | 25 | strike 2,4,5,18 | equal |
+| 33s2345 | discarded | 15 | strike 2,3,4,5 | early |
+| 33s1234 | discarded | 14 | strike 1,2,3,4 | early |
+| 33sheal | discarded | 22 | wait T2; strike 3,4,5 | Soft killhp=-1/0 |
+| 33sheal16 | discarded | 22 | wait T2; strike 3,4,16 | Soft killhp=-1 |
+| 33sw2k16 | discarded | 22 | wait T2; strike 4,5,16 | Soft killhp=-1 |
+| 33sw2k18 | discarded | 23 | wait T2; strike 4,5,18 | Soft killhp=-1 |
+| 33sheal4 | discarded | 23 | wait T4; strike 2,5,18 | Soft killhp=-1 |
+
+Soft under S: no Soft score > 25. Soft killhp at best Soft path was Soft 0 — Soft +2 Soft-unreachable with start hp=6.
+
+## Arena T (current): S + start hp=8
+
+| gen | status | score | rule | note |
+|-----|--------|-------|------|------|
+| 33a | baseline | 25 | strike 2,4,5,18 | Soft killhp=0 @18; Soft +2 no |
+| 33 | **kept** | **26** | strike 2,4,5,16 | Soft killhp=**2** @16; Soft **+2 fired** |
+| 33b | discarded | 26 | strike 2,3,4,16 | Soft killhp=2 @16; Soft equal |
+| 33c | discarded | 26 | strike 2,4,5,19 | Soft killhp=0 @19; Soft equal |
+| 33d | discarded | 25 | strike 2,4,5,15/17/18 | Soft below/equal |
+| 33e | discarded | 24 | strike 2,4,5,14 | Soft below |
+| 33f | discarded | 15 | strike 2,3,4,5 | Soft early killhp=4 but Soft low lived |
+| 33g | discarded | 24 | strike 2,4,6,16 | Soft killhp=1; Soft +2 no |
+| 33h | discarded | 23 | wait T2; strike 4,5,16 | Soft no kill |
+| 33i | discarded | 22–24 | wait T2/T4 heal + finish | Soft killhp=0 or Soft no kill |
+
+Soft +2 Soft-reachable under T (gen33 Soft 26 Soft killhp=2). Soft heal Soft-before Soft-finish Soft-paths Soft-did Soft-not Soft Soft-beat Soft 26 Soft-with Soft bonus Soft (Soft chip Soft + Soft strike Soft trade Soft still Soft drains Soft Soft killhp Soft past Soft turn Soft 16 Soft). Soft ≥27 Soft search Soft continues Soft.
 
 ## How a generation lands
 

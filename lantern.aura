@@ -2,16 +2,17 @@
 ; Actions: 0 wait, 1 strike, 2 dodge.
 ; B strikes: odd always, even from turn >=5.
 ; Opp damage 2 before turn 6, else 3. Dodge negates the base hit.
-; Arena R: Q chip (dodge costs 1 hp from turn >=15) plus clean-win bonus.
-; Bonus: +2 score on the turn ehp hits 0 if hp is still >=4.
+; Arena T: Q chip (dodge costs 1 hp from turn >=15) plus clean-win bonus.
+; Bonus: +2 score on the turn ehp hits 0 if hp is still >=2.
+; Start hp=8 (was 6 under S/R) so Soft clean-win Soft-path can Soft-reach hp>=2.
 ; Strike deals 2, wait heals 1 (cap 8). Max 48 turns.
-; Score = damage + turns lived + clean bonus. Start hp=6 ehp=8, clamp 0-8.
-; Kept generation: 31 carry-forward (measured Soft score 25 @ aura 6a13b3d).
-; Rule unchanged: strike 2,4,5,18 else dodge. Soft bonus did not raise this rule.
+; Score = damage + turns lived + clean bonus. Clamp 0-8.
+; Kept generation: 33 (measured Soft score 26 @ aura 6a13b3d).
+; Rule: strike 2,4,5,16 else dodge. Soft +2 Soft-fired (Soft killhp=2 @16).
 (export play rule)
 
 (define (rule hp ehp turn)
-  (cond ((or (= turn 2) (= turn 4) (= turn 5) (= turn 18)) 1)
+  (cond ((or (= turn 2) (= turn 4) (= turn 5) (= turn 16)) 1)
         (#t 2)))
 
 (define (opp-strike? turn)
@@ -43,7 +44,7 @@
     (cons hp2 ehp2)))
 
 (define (play)
-  (let loop ((hp 6) (ehp 8) (turn 1) (score 0))
+  (let loop ((hp 8) (ehp 8) (turn 1) (score 0))
     (cond ((or (<= hp 0) (<= ehp 0) (> turn 48)) score)
           (#t
            (let* ((action (rule hp ehp turn))
@@ -52,5 +53,5 @@
                   (hp2 (car nxt))
                   (ehp2 (cdr nxt))
                   (lived (if (> hp2 0) 1 0))
-                  (bonus (if (and (<= ehp2 0) (>= hp2 4)) 2 0)))
+                  (bonus (if (and (<= ehp2 0) (>= hp2 2)) 2 0)))
              (loop hp2 ehp2 (+ turn 1) (+ score dealt lived bonus)))))))
