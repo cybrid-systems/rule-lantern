@@ -1,0 +1,62 @@
+RSI3_START
+SET_CODE=ok
+BASE_ARENA_T=27
+SET_CODE_FACTOR=ok
+BASE_FACTOR=27
+RSI3_GATE_AT_INSTALL=1
+RSI3_GATE_PROBE=broken-step
+RSI3_GATE_REJECT=step
+RSI3_GATE_PROBE_PLAY=27
+FIBER_SPAWN=41
+FIBER_SIM_BASE=27
+FIBER_PLAY_BASE=27
+FIBER_POP_BEST=(20.3961 1.57291 0.677492)
+FIBER_CONFIRM_PLAY=29
+FIBER_CONFIRM_SIM=29
+RSI3_KIND=rule:pso:pso
+RSI3_KIND=knob:ant:ant
+RSI3_KIND=opp:ant:ant
+RSI3_KIND=late:ant:ant
+ROUND 1 IN=27 RULE=27 KNOB=30 OPP=10 TURNS=(2 4 5 20) KNOBS=(20 1 2 5)
+RSI3_KIND=rule:ant:ant
+RSI3_KIND=knob:pso:pso
+RSI3_KIND=opp:pso:pso
+RSI3_KIND=late:pso:pso
+ROUND 2 IN=10 RULE=10 KNOB=10 OPP=10 TURNS=(2 4 5 20) KNOBS=(20 1 2 5)
+RSI3_KIND=rule:pso:pso
+RSI3_KIND=knob:ant:ant
+RSI3_KIND=opp:ant:ant
+RSI3_KIND=late:ant:ant
+ROUND 3 IN=10 RULE=25 KNOB=36 OPP=36 TURNS=(35 31 29 7) KNOBS=(48 2 2 5)
+RSI3_KIND=rule:ant:ant
+RSI3_KIND=knob:pso:pso
+RSI3_KIND=opp:pso:pso
+RSI3_KIND=late:pso:pso
+ROUND 4 IN=36 RULE=36 KNOB=36 OPP=36 TURNS=(35 31 29 7) KNOBS=(48 2 2 5)
+SET_CODE_FACTOR=ok
+RSI3_HEAL=89
+RSI3_HEAL_FAIL=0
+RSI3_ROUNDS=4
+RSI3_GATE_REJECTS=1
+RSI3_VS_B=30
+RSI3_BEST=30
+RSI3_KNOBS=chip=20,hp=1,bonus=2,late=5
+RSI3_DONE
+RSI3_BEST_TURNS=(2 4 5 20)
+RSI3_BEST_RULE=(lambda (hp ehp turn) (cond ((or (= turn 2) (= turn 4) (= turn 5) (= turn 20)) 1) (#t 2)))
+RSI3_BEST_OPP=(lambda (turn) (if (or (= (modulo turn 2) 1) (>= turn (late-strike-floor))) (if (>= turn 6) 3 2) 0))
+RSI3_KNOB_LIVE_CHIP=20
+RSI3_KNOB_LIVE_HP=1
+RSI3_KNOB_LIVE_BONUS=2
+RSI3_KNOB_LIVE_LATE=5
+RSI3_RULE_AT_ARENA_KNOBS=27
+RSI3_SWAP_OK=233/234
+RSI3_FIBER=1
+RSI3_FIBER_NOTE=swarm-parallel-pso-knobs
+RSI3_FINAL_TURNS=(35 31 29 7)
+RSI3_FINAL_RULE=(lambda (hp ehp turn) (cond ((or (= turn 35) (= turn 31) (= turn 29) (= turn 7)) 1) (#t 2)))
+RSI3_FINAL_KNOBS=(48 2 2 5)
+RSI3_KEPT_OPP=(lambda (turn) (if (>= turn 1) (if (>= turn 1) 3 3) (if (= (modulo turn 2) 1) 3 0)))
+SET_CODE_FACTOR=ok
+RSI3_FINAL_VS_KEPT=36
+RSI3_TAIL=ok
