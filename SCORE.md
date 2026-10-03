@@ -28,3 +28,5 @@ process. Best `(play)` against opponent B is still 27. The final rule
 against B is 22. `(play)` against the kept opponent is 22, and that kept
 opponent is the B schedule again. Nothing in run 3 beat 27.
 Run 4 (`evolve_rsi.aura`) is the RSI loop: alternate PSO/ant rounds plus a step-body gate. `RSI_VS_B` is 27. `RSI_FINAL_RULE_VS_B` is 26. The gate rejected one deliberate broken `step` and healed it. Nothing in run 4 beat 27 against opponent B.
+
+Run 6 (`evolve_rsi3.aura`, Soft tip `4c4b89b`) finished exit 0. `RSI3_VS_B=30` and `RSI3_BEST=30` with knobs `chip=20,hp=1,bonus=2,late=5` and strikes 2, 4, 5, 20. That 30 is the factored duel, not frozen Arena T. `RSI3_RULE_AT_ARENA_KNOBS=27`. `RSI3_FINAL_VS_KEPT=36` is not a score against B.

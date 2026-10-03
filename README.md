@@ -122,3 +122,5 @@ sudo docker run --rm \
   ghcr.io/cybrid-systems/dev:v1.0.9 \
   /workspace/aura-grok/build/aura /workspace/rule-lantern/evolve_restricted.aura
 ```
+
+RSI3 (`evolve_rsi3.aura`, Soft tip `4c4b89b`, same sandbox-off image): four rounds over rule, kernel knobs, opponent, and late-strike floor, with the step gate and a parallel fiber PSO. Exit 0. `RSI3_VS_B=30` at knobs chip=20, hp=1, bonus=2, late=5 (not frozen Arena T). The same rule at Arena T knobs scored 27. Details in `RSI.md` and `generations_native.md`.
