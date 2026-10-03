@@ -4,70 +4,51 @@ Only rows with Soft tip + score come from a Soft `play` run. Do not fill a score
 
 Soft tip: `6a13b3d` * image: `ghcr.io/cybrid-systems/dev:v1.0.9`
 
-Prior Soft arenas A-J live in earlier main commits. K/L Soft 44 ceilings documented previously.
+Prior Soft arenas through N (Soft 48 strike 2,4,5,40) live in earlier main commits.
 
-## Arena K: B strikes; max 36
-
-| gen | status | score | Soft tip | rule | note |
-|-----|--------|-------|----------|------|------|
-| 21 | kept | 44 | 6a13b3d | strike 2,4,6,36; else dodge | Soft ceiling |
-
-## Arena L: B strikes; max 36; wait fatigue from turn >=10
+## Arena O: N damage; max **48**; no dodge chip
 
 | gen | status | score | Soft tip | rule | note |
 |-----|--------|-------|----------|------|------|
-| 22 | kept | 44 | 6a13b3d | strike 2,4,6,36; else dodge | Soft ceiling; fatigue did not displace |
+| 27o | measured baseline | 48 | 6a13b3d | strike 2,4,5,40; else dodge | gen27 under longer match |
+| 28 | **kept** | **56** | 6a13b3d | strike 2,4,5,48; else dodge | Soft ceiling 8+48 |
+| 28b | discarded | 55 | 6a13b3d | strike 2,4,6,48 | finish-last Soft die-on-kill |
+| 28c | discarded | 54 | 6a13b3d | strike 2,4,5,46 | below |
+| 28d | discarded | 54 | 6a13b3d | wait T2; strike 4,5,48 | below |
+| 28e | discarded | 48 | 6a13b3d | always dodge | naive |
 
-## Arena M: B strikes; max 36; opp deals 3 from turn >=12 (else 2)
+Arena O Soft ceiling **56**. Gen 28 hit it. Soft plateau not reached before raising to P.
 
-| gen | status | score | Soft tip | rule | note |
-|-----|--------|-------|----------|------|------|
-| 22m | measured baseline / kept | 44 | 6a13b3d | strike 2,4,6,36; else dodge | Soft ceiling |
-| 23a | discarded | 20 | 6a13b3d | strike 2,4,6,12 | early kill |
-| 23b | discarded | 22 | 6a13b3d | strike 2,4,6,14 | early kill |
-| 23c | discarded | 24 | 6a13b3d | strike 2,4,6,16 | early kill |
-| 23d | discarded | 28 | 6a13b3d | strike 2,4,6,20 | early kill |
-| 23e | discarded | 44 | 6a13b3d | strike 2,4,8,36 | equal |
-| 23f | discarded | 44 | 6a13b3d | strike 2,4,11,36 | equal |
-| 23g | discarded | 44 | 6a13b3d | strike 2,4,5,36 | equal |
-| 23h | discarded | 43 | 6a13b3d | strike 2,4,12,36 | below |
-| 23i | discarded | 42 | 6a13b3d | wait T2; strike 4,6,36 | below |
-| 23j | discarded | 36 | 6a13b3d | always dodge | naive |
-
-Arena M Soft ceiling **44**. Finish-on-last did **not** die under dmg3@12. Soft plateau (>=3 equals at 44).
-
-## Arena M* (hardened): B strikes; max 36; opp deals 3 from turn >=6
-
-Soft probe after M failed to Soft-displace finish-on-last.
+## Arena P (current): O physics + dodge chip 1 from turn >=20
 
 | gen | status | score | Soft tip | rule | note |
 |-----|--------|-------|----------|------|------|
-| 24 | measured baseline | 43 | 6a13b3d | strike 2,4,6,36; else dodge | finish-last Soft dies on kill (lived 0) |
-| 25 | **kept** | **44** | 6a13b3d | strike 2,4,5,36; else dodge | third strike before dmg3; Soft survive finish |
-| 25b | discarded | 43 | 6a13b3d | strike 2,4,8,36 | equal to baseline |
-| 25c | discarded | 43 | 6a13b3d | strike 2,4,11,36 | equal to baseline |
-| 25d | discarded | 42 | 6a13b3d | wait T2; strike 4,6,36 | below |
-| 25e | discarded | 42 | 6a13b3d | strike 2,4,6 only | leave ehp |
-| 25f | discarded | 23 | 6a13b3d | strike 2,4,6,16 | early |
-| 25g | discarded | 19 | 6a13b3d | strike 2,4,6,12 | early |
-| 25h | discarded | 36 | 6a13b3d | always dodge | naive |
+| 29 | measured baseline | 28 | 6a13b3d | strike 2,4,5,48; else dodge | O winner Soft-collapsed under chip |
+| 29b | discarded | 27 | 6a13b3d | strike 2,4,5,19 | kill before chip |
+| 29c | discarded | 29 | 6a13b3d | strike 2,4,5,22 | below kept |
+| 30 | **kept** | **30** | 6a13b3d | strike 2,4,5,23; else dodge | Soft-best under chip@20 |
+| 30b | discarded | 28 | 6a13b3d | strike 2,4,5,24 | below |
+| 30c | discarded | 28 | 6a13b3d | strike 2,4,5,21 | below |
+| 30d | discarded | 29 | 6a13b3d | wait T2; strike 4,5,24 | equal not higher than 30 after keep |
+| 30e | discarded | 28 | 6a13b3d | wait T2; strike 4,5,23 | below |
+| 30f | discarded | 26 | 6a13b3d | strike 2,4,6,19 | below |
+| 30g | discarded | 24 | 6a13b3d | always dodge | Soft dies to chip |
+| 30h | discarded | 28 | 6a13b3d | strike 2,4,5,20 | below |
+| 30i | discarded | 28 | 6a13b3d | strike 2,4,5,25/26 | below |
 
-Finish-on-last Soft **died** as Soft 44 champion (dropped to Soft 43). Soft gen25 beats it.
+Soft 2,4,5,last **did not survive** P (Soft 28). Soft plateau near Soft 30 with nearby kill timings Soft 28-29.
 
-## Arena N (current): M* damage; max **40** turns
+### Soft soften probe (chip from turn >=30, not adopted)
 
-| gen | status | score | Soft tip | rule | note |
-|-----|--------|-------|----------|------|------|
-| 26 | measured baseline | 44 | 6a13b3d | strike 2,4,5,36; else dodge | gen25 under longer match |
-| 27 | **kept** | **48** | 6a13b3d | strike 2,4,5,40; else dodge | Soft ceiling 8+40 |
-| 27b | discarded | 47 | 6a13b3d | strike 2,4,6,40 | finish-last Soft die-on-kill |
-| 27c | discarded | 47 | 6a13b3d | strike 2,4,8,40 | equal die-on-kill |
-| 27d | discarded | 46 | 6a13b3d | wait T2; strike 4,6,40 | below |
-| 27e | discarded | 40 | 6a13b3d | always dodge | naive |
-| 27f | discarded | 27 | 6a13b3d | strike 2,4,6,20 | early |
+| tag | score | Soft tip | note |
+|-----|-------|----------|------|
+| PS_BASE | 38 | 6a13b3d | finish-last Soft better but still Soft < O |
+| PS1 | 37 | 6a13b3d | kill @29 |
+| PS2 | 39 | 6a13b3d | kill @32 Soft-best soften probe |
+| PS3 | 40 | 6a13b3d | kill @33 Soft-best soften probe |
 
-Arena N Soft ceiling **48**. Gen 27 hit it.
+Chip@20 Soft scores stayed Soft >=24 (not Soft <20), so Soft kept chip@20.
 
 ## How a generation lands
 
-The guide writes the next `rule`. Soft scores it. If score > kept, `lantern.aura` becomes that body and this table gets a kept row.
+Soft scores a proposal. Keep only if Soft score is strictly higher.

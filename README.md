@@ -6,11 +6,11 @@ A tiny duel. The evolving part is `rule`.
 - `1` strike (deal 2)
 - `2` dodge (negate the opponent strike)
 
-**Arena O:** B strikes, opp deals 3 from turn >=6 (else 2), max **48** turns.
-Score = damage dealt + turns lived. Start hp=6 ehp=8, clamp 0-8.
+**Arena P:** B strikes, opp deals 3 from turn >=6 (else 2), max **48** turns,
+plus **dodge attrition**: from turn >=20 a successful dodge still costs **1 hp**.
 
-Soft tip `6a13b3d`. Keep only on a strictly higher Soft score.
+Score = damage dealt + turns lived. Start hp=6 ehp=8. Soft tip `6a13b3d`.
 
 ## Status
 
-Kept generation **28**, Soft score **56** (arena O). See `generations.md`.
+Kept generation **30**, Soft score **30** (arena P). See `generations.md`.

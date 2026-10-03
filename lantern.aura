@@ -1,15 +1,18 @@
 ; lantern - a tiny duel whose only evolving part is (rule hp ehp turn).
 ; Actions: 0 wait, 1 strike, 2 dodge.
 ; Opponent strikes odd always; even from turn >=5.
-; Opp damage: 2 before turn 6; 3 from turn >=6 when striking. Dodge negates.
+; Opp damage: 2 before turn 6; 3 from turn >=6 when striking. Dodge negates base hit.
+; Arena P attrition: from turn >=20, a successful dodge still costs 1 hp chip.
 ; Strike deals 2, wait heals 1 (cap 8).
-; Score = damage dealt + turns lived. Max 48 turns (arena O).
+; Score = damage dealt + turns lived. Max 48 turns (arena P).
 ; HP/EHP clamped 0-8; start hp=6 ehp=8.
-; Kept generation: 28 (measured Soft score 56 @ aura 6a13b3d).
+; Kept generation: 30 (measured Soft score 30 @ aura 6a13b3d).
+; Rule: strike 2,4,5,23 else dodge — Soft-kill before dodge-chip drains you.
+; Note: Soft 2,4,5,48 (O finish-last) Soft-scored 28 under P and lost the keep.
 (export play rule)
 
 (define (rule hp ehp turn)
-  (cond ((or (= turn 2) (= turn 4) (= turn 5) (= turn 48)) 1)
+  (cond ((or (= turn 2) (= turn 4) (= turn 5) (= turn 23)) 1)
         (#t 2)))
 
 (define (opp-strike? turn)
@@ -19,6 +22,9 @@
 (define (opp-damage turn)
   (if (>= turn 6) 3 2))
 
+(define (dodge-chip turn action them)
+  (if (and (>= turn 20) them (= action 2)) 1 0))
+
 (define (clamp n lo hi)
   (cond ((< n lo) lo)
         ((> n hi) hi)
@@ -27,9 +33,11 @@
 (define (step hp ehp turn action)
   (let* ((them (opp-strike? turn))
          (dealt (if (= action 1) 2 0))
-         (taken (cond ((and them (= action 2)) 0)
-                      (them (opp-damage turn))
-                      (#t 0)))
+         (chip (dodge-chip turn action them))
+         (base-taken (cond ((and them (= action 2)) 0)
+                           (them (opp-damage turn))
+                           (#t 0)))
+         (taken (+ base-taken chip))
          (healed (if (= action 0) 1 0))
          (hp2 (clamp (- (+ hp healed) taken) 0 8))
          (ehp2 (clamp (- ehp dealt) 0 8)))
