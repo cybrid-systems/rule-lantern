@@ -335,3 +335,63 @@ Soft did not beat 27 against opponent B. `RSI_VS_B` is 27. `RSI_FINAL_RULE_VS_B`
 Kept best-vs-B rule: strike on turns 2, 4, 5, and 20, otherwise dodge. Same body as the initial rule.
 
 Kept opponent, in words: damage 2 on every turn. From turn 2 both arms are 2, and turn 1 is the odd-turn arm, also 2. Fingerprint is the `RSI_KEPT_OPP` line. Player score 23 is against this opponent.
+
+## Run 5 — RSI2 kernel-knob evolve — 2026-10-03 16:22 UTC+8
+
+`evolve_rsi2.aura`. This is the interrupted Soft run. The complete available stdout is `/tmp/rsi2.out`; it stops after the live knob stamps and has no `RSI2_DONE` line. Do not interpret the missing close-out stamps as zero.
+
+This process first verified the Arena T baseline (`BASE_ARENA_T=27`), installed the behavior-matched factored duel, and exercised the gate with a deliberately broken `step`. The search then alternated four rounds over rule, the three early kernel knobs, opponent policy, and the late-strike knob. The factored `step` still contains `dodge-chip`, `base-taken`, and `(taken (+ base-taken chip))`; the knobs are live helper swaps, so changing them changes the duel physics.
+
+Available stdout:
+
+```
+RSI2_START
+SET_CODE=ok
+BASE_ARENA_T=27
+SET_CODE_FACTOR=ok
+BASE_FACTOR=27
+RSI2_GATE_AT_INSTALL=1
+RSI2_GATE_PROBE=broken-step
+RSI2_GATE_REJECT=step
+RSI2_GATE_PROBE_PLAY=27
+FIBER_SPAWN=41
+FIBER_SIM_BASE=27
+FIBER_PLAY_BASE=27
+FIBER_POP_BEST=(20.3961 1.57291 0.677492)
+FIBER_CONFIRM_PLAY=29
+FIBER_CONFIRM_SIM=29
+RSI2_KIND=rule:pso:pso
+RSI2_KIND=knob:ant:ant
+RSI2_KIND=opp:ant:ant
+RSI2_KIND=late:ant:ant
+ROUND 1 IN=27 RULE=27 KNOB=30 OPP=10 TURNS=(2 4 5 20) KNOBS=(20 1 2 5)
+RSI2_KIND=rule:ant:ant
+RSI2_KIND=knob:pso:pso
+RSI2_KIND=opp:pso:pso
+RSI2_KIND=late:pso:pso
+ROUND 2 IN=10 RULE=10 KNOB=10 OPP=10 TURNS=(2 4 5 20) KNOBS=(20 1 2 5)
+RSI2_KIND=rule:pso:pso
+RSI2_KIND=knob:ant:ant
+RSI2_KIND=opp:ant:ant
+RSI2_KIND=late:ant:ant
+ROUND 3 IN=10 RULE=25 KNOB=36 OPP=36 TURNS=(35 31 29 7) KNOBS=(48 2 2 5)
+RSI2_KIND=rule:ant:ant
+RSI2_KIND=knob:pso:pso
+RSI2_KIND=opp:pso:pso
+RSI2_KIND=late:pso:pso
+ROUND 4 IN=36 RULE=36 KNOB=36 OPP=36 TURNS=(35 31 29 7) KNOBS=(48 2 2 5)
+SET_CODE_FACTOR=ok
+RSI2_VS_B=30
+RSI2_BEST=30
+RSI2_BEST_TURNS=(2 4 5 20)
+RSI2_BEST_RULE=(lambda (hp ehp turn) (cond ((or (= turn 2) (= turn 4) (= turn 5) (= turn 20)) 1) (#t 2)))
+RSI2_KNOBS=chip=20,hp=1,bonus=2,late=5
+RSI2_KNOB_LIVE_CHIP=20
+RSI2_KNOB_LIVE_HP=1
+RSI2_KNOB_LIVE_BONUS=2
+RSI2_KNOB_LIVE_LATE=5
+```
+
+The fiber confirmation was **kept, not healed**: `fiber-pop!` only keeps it when the gate passes, the simulator equals `(play)`, it beats the prior `*vsb*`, and `vs-b?` holds. Here both values were 29, above the verified 27 baseline, and the subsequent best-vs-B knob stamp is `chip=20,hp=1,bonus=2,late=5`. The printed Round 3 `KNOB=36` is a score after live knob evolution, not an Arena T score; its live knobs were `(48 2 2 5)`, while the later best-vs-B stamp is `(20 1 2 5)`.
+
+`RSI2_VS_B=30` is above the prior 27, but it is **not** the frozen Arena T physics: the kernel knobs changed the duel. It is the Soft factored-duel result under the gate, with best rule strikes on turns 2, 4, 5, and 20. The final `RSI2_HEAL`, `RSI2_HEAL_FAIL`, `RSI2_ROUNDS`, `RSI2_GATE_REJECTS`, and other close-out lines were not printed. One `RSI2_GATE_REJECT=step` event is visible; heal totals and the final counter stamps remain unknown from this interrupted stdout.
