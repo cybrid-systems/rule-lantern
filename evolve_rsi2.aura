@@ -539,7 +539,7 @@
             (begin
               (init-pso (+ 960000 n) 4 1.0 40.0)
               (opp-step "pso")))
-        (set! *opp-player* (let ((p (try (play) (catch (e) 1000000)))
+        (set! *opp-player* (let ((p (try (play) (catch (e) 1000000))))
                              (if (number? p) p 1000000)))
         (if (= (modulo n 2) 1)
             (begin
