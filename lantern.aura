@@ -1,16 +1,16 @@
 ; lantern - a tiny duel whose only evolving part is (rule hp ehp turn).
 ; Actions: 0 wait, 1 strike, 2 dodge.
 ; Opponent strikes on every odd turn; from turn 5 onward also strikes on even turns.
-; Opp damage: 2 on turns 1-11; 3 from turn >=12 when striking. Dodge negates.
-; Strike deals 2, wait heals 1 (cap 8). No wait-fatigue.
-; Score = damage dealt + turns lived. Max 36 turns (arena M).
+; Opp damage: 2 on turns 1-5; 3 from turn >=6 when striking. Dodge negates.
+; Strike deals 2, wait heals 1 (cap 8).
+; Score = damage dealt + turns lived. Max 40 turns (arena N).
 ; HP/EHP clamped 0-8; start hp=6 ehp=8.
-; Kept generation: 22 carry-forward (measured Soft score 44 @ aura 6a13b3d).
-; Finish-on-last still hits the 44 ceiling under arena M. No strict Soft gain.
+; Kept generation: 27 (measured Soft score 48 @ aura 6a13b3d).
+; Rule: strike 2,4,5,40 else dodge — third strike before dmg3 so late kill Soft-survives.
 (export play rule)
 
 (define (rule hp ehp turn)
-  (cond ((or (= turn 2) (= turn 4) (= turn 6) (= turn 36)) 1)
+  (cond ((or (= turn 2) (= turn 4) (= turn 5) (= turn 40)) 1)
         (#t 2)))
 
 (define (opp-strike? turn)
@@ -18,7 +18,7 @@
       (>= turn 5)))
 
 (define (opp-damage turn)
-  (if (>= turn 12) 3 2))
+  (if (>= turn 6) 3 2))
 
 (define (clamp n lo hi)
   (cond ((< n lo) lo)
@@ -38,7 +38,7 @@
 
 (define (play)
   (let loop ((hp 6) (ehp 8) (turn 1) (score 0))
-    (cond ((or (<= hp 0) (<= ehp 0) (> turn 36)) score)
+    (cond ((or (<= hp 0) (<= ehp 0) (> turn 40)) score)
           (#t
            (let* ((action (rule hp ehp turn))
                   (dealt (if (= action 1) 2 0))

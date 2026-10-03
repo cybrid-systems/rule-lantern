@@ -12,4 +12,4 @@ sudo docker run --rm \
   "$AURA" /workspace/rule-lantern/<script>.aura
 ```
 
-Arena M: B strikes, max 36, opp deals 3 from turn >=12 (else 2). Soft tip `6a13b3d`.
+Arena N: B strikes, max 40, opp deals 3 from turn >=6 (else 2). Soft tip `6a13b3d`.
