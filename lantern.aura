@@ -1,0 +1,40 @@
+; lantern — a tiny duel whose only evolving part is (rule hp ehp turn).
+; Actions: 0 wait, 1 strike, 2 dodge.
+; Opponent strikes on odd turns, waits on even.
+; Strike deals 2, dodge negates a strike, wait heals 1 (cap 8).
+; Score = damage dealt + turns lived. Higher is better. Max 12 turns.
+(export play rule)
+
+(define (rule hp ehp turn)
+  1)
+
+(define (opp-strike? turn)
+  (= (modulo turn 2) 1))
+
+(define (clamp n lo hi)
+  (cond ((< n lo) lo)
+        ((> n hi) hi)
+        (#t n)))
+
+(define (step hp ehp turn action)
+  (let* ((them (opp-strike? turn))
+         (dealt (if (= action 1) 2 0))
+         (taken (cond ((and them (= action 2)) 0)
+                      (them 2)
+                      (#t 0)))
+         (healed (if (= action 0) 1 0))
+         (hp2 (clamp (- (+ hp healed) taken) 0 8))
+         (ehp2 (clamp (- ehp dealt) 0 8)))
+    (cons hp2 ehp2)))
+
+(define (play)
+  (let loop ((hp 6) (ehp 8) (turn 1) (score 0))
+    (cond ((or (<= hp 0) (<= ehp 0) (> turn 12)) score)
+          (#t
+           (let* ((action (rule hp ehp turn))
+                  (dealt (if (= action 1) 2 0))
+                  (nxt (step hp ehp turn action))
+                  (hp2 (car nxt))
+                  (ehp2 (cdr nxt))
+                  (lived (if (> hp2 0) 1 0)))
+             (loop hp2 ehp2 (+ turn 1) (+ score dealt lived)))))))
