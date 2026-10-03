@@ -1,8 +1,9 @@
 # How to run
 
-Native in-session loop (swarm + hot-strategy). `AURA_SANDBOX=off` is required
-so `set-code` / `mutate:rebind` are not rejected by production Restricted
-defaults. Tip `6a13b3d`.
+Native in-session loop (swarm kinds pso, ant, grid, abc, plus hot-strategy).
+`AURA_SANDBOX=off` is required so `set-code` builds a workspace. Without it,
+`evolve_restricted.aura` stamps `NATIVE_RESTRICTED_OK=0` (live rule unchanged).
+Tip `6a13b3d`.
 
 ```bash
 sudo docker run --rm \
@@ -18,4 +19,6 @@ sudo docker run --rm \
 
 Fitness is `(play)` inside that process. The binary is not the fitness number.
 External oneshot rows live in `generations.md`. Native rows live in
-`generations_native.md`.
+`generations_native.md`. Run 2 remeasured the kept rule against opponent B
+at 27, and against the co-evolved opponent at 10. That 10 is not a score
+against B, and nothing in that run beat 27.
