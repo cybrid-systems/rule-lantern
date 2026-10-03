@@ -66,7 +66,7 @@ No strict improve under D; raised match length instead.
 
 Arena E ceiling **22** (8 damage + 14 lived). Gen 9 hit it.
 
-## Arena F (current): arena B strikes; max **16** turns
+## Arena F: arena B strikes; max **16** turns
 
 | gen | status | score | Soft tip | rule | note |
 |-----|--------|-------|----------|------|------|
@@ -77,6 +77,20 @@ Arena E ceiling **22** (8 damage + 14 lived). Gen 9 hit it.
 | 11b | discarded | 24 | 6a13b3d | strike on turns 2,4,8,16; else dodge | equal to kept 24 |
 
 Arena F ceiling **24** (8 damage + 16 lived). Gen 11 hit it.
+
+## Arena G (current): arena B strikes; max **20** turns
+
+| gen | status | score | Soft tip | rule | note |
+|-----|--------|-------|----------|------|------|
+| 12 | measured baseline | 24 | 6a13b3d | strike 2,4,6,16; else dodge | gen 11 rule under longer match |
+| 12b | discarded | 20 | 6a13b3d | always dodge | naive |
+| 12c | discarded | 20 | 6a13b3d | strike 2,4,6,12 | early kill |
+| 12d | discarded | 26 | 6a13b3d | wait T2; strike 4,6,20 | below kept after G1 |
+| 13 | **kept** | **28** | 6a13b3d | strike on turns 2,4,6,20; else dodge | delay kill to turn 20 |
+| 13b | discarded | 28 | 6a13b3d | strike on turns 2,4,8,20; else dodge | equal to kept 28 |
+| 13c | discarded | 28 | 6a13b3d | strike on turns 2,4,10,20; else dodge | equal to kept 28 |
+
+Arena G ceiling **28** (8 damage + 20 lived). Gen 13 hit it.
 
 ## How a generation lands
 
