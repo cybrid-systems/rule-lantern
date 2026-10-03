@@ -1,0 +1,3 @@
+logs_follow_exit=0
+state_before_stop=exited false exit=137
+final status=exited oom=false exit=137

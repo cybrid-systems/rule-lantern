@@ -1,0 +1,4 @@
+logs_follow_exit=124
+state_before_stop=running false exit=0
+stopped_by_wall
+final status=exited oom=false exit=137
