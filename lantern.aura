@@ -2,13 +2,13 @@
 ; Actions: 0 wait, 1 strike, 2 dodge.
 ; Opponent strikes on every odd turn; from turn 5 onward also strikes on even turns.
 ; Strike deals 2, dodge negates a strike, wait heals 1 (cap 8).
-; Score = damage dealt + turns lived. Higher is better. Max 24 turns (arena H).
+; Score = damage dealt + turns lived. Higher is better. Max 28 turns (arena I).
 ; HP/EHP clamped 0-8; start hp=6 ehp=8.
-; Kept generation: 15 (measured Soft score 32 @ aura 6a13b3d) under arena H.
+; Kept generation: 17 (measured Soft score 36 @ aura 6a13b3d) under arena I.
 (export play rule)
 
 (define (rule hp ehp turn)
-  (cond ((or (= turn 2) (= turn 4) (= turn 6) (= turn 24)) 1)
+  (cond ((or (= turn 2) (= turn 4) (= turn 6) (= turn 28)) 1)
         (#t 2)))
 
 (define (opp-strike? turn)
@@ -33,7 +33,7 @@
 
 (define (play)
   (let loop ((hp 6) (ehp 8) (turn 1) (score 0))
-    (cond ((or (<= hp 0) (<= ehp 0) (> turn 24)) score)
+    (cond ((or (<= hp 0) (<= ehp 0) (> turn 28)) score)
           (#t
            (let* ((action (rule hp ehp turn))
                   (dealt (if (= action 1) 2 0))

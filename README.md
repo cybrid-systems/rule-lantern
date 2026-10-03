@@ -8,8 +8,8 @@ Each turn the rule sees `(hp ehp turn)` and returns an action:
 - `1` strike (deal 2)
 - `2` dodge (negate the opponent's strike)
 
-**Arena H:** the opponent strikes on every odd turn, and also on even turns from turn 5 onward.
-A game lasts at most **24** turns. Score is damage dealt plus turns lived. Higher is better.
+**Arena I:** the opponent strikes on every odd turn, and also on even turns from turn 5 onward.
+A game lasts at most **28** turns. Score is damage dealt plus turns lived. Higher is better.
 HP and EHP are clamped 0-8; start hp=6 ehp=8.
 
 ## Loop
@@ -23,4 +23,4 @@ Scores are invented nowhere. Soft tip for measured rows: `6a13b3d`, binary `/wor
 
 ## Status
 
-Kept generation **15**, Soft score **32** (arena H). See `generations.md`.
+Kept generation **17**, Soft score **36** (arena I). See `generations.md`.
