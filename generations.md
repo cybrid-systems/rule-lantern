@@ -1,20 +1,27 @@
 # Generations
 
-Only rows with `measured` come from a Soft `play` run. Do not fill a score by hand.
+Only rows with Soft tip + score come from a Soft `play` run. Do not fill a score by hand.
 
-| gen | status | score | rule | note |
-|-----|--------|-------|------|------|
-| 0 | seed | unmeasured | `(rule hp ehp turn) => 1` | always strike |
+Soft tip: `6a13b3d` · image: `ghcr.io/cybrid-systems/dev:v1.0.9`
+
+| gen | status | score | Soft tip | rule | note |
+|-----|--------|-------|----------|------|------|
+| 0 | measured | 12 | 6a13b3d | always strike `(=> 1)` | seed |
+| 1 | measured kept briefly | 16 | 6a13b3d | dodge odd, strike even | beat gen 0 |
+| 1b | discarded | 16 | 6a13b3d | dodge odd; even heal if hp≤3 else strike | not strictly higher than 16 |
+| 2 | **kept** | **20** | 6a13b3d | dodge odd; even wait if turn<6 else strike | delay the kill, rack lived |
 
 ## How a generation lands
 
-The guide writes the next `rule` here as a proposal. Soft applies it with `mutate:rebind` on the name `rule`, calls `play`, and this file records the score only if that call returned a number. If the score is not strictly higher than the kept generation, the proposal is marked discarded and `lantern.aura` stays on the winner.
+The guide writes the next `rule`. Soft scores it. If score > kept, `lantern.aura` becomes that body and this table gets a kept row. Else the proposal is discarded here and `lantern.aura` stays on the winner.
 
-### Proposal 1 (not yet run)
+### Next proposal (not yet run)
 
-Strike while the opponent is waiting (even turns), dodge when they strike (odd turns):
+Stretch lived further: wait on even turns until turn 8, then finish.
 
 ```
 (define (rule hp ehp turn)
-  (if (= (modulo turn 2) 1) 2 1))
+  (if (= (modulo turn 2) 1)
+      2
+      (if (< turn 8) 0 1)))
 ```

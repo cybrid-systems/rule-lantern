@@ -3,10 +3,13 @@
 ; Opponent strikes on odd turns, waits on even.
 ; Strike deals 2, dodge negates a strike, wait heals 1 (cap 8).
 ; Score = damage dealt + turns lived. Higher is better. Max 12 turns.
+; Kept generation: 2 (measured Soft score 20 @ aura 6a13b3d).
 (export play rule)
 
 (define (rule hp ehp turn)
-  1)
+  (if (= (modulo turn 2) 1)
+      2
+      (if (< turn 6) 0 1)))
 
 (define (opp-strike? turn)
   (= (modulo turn 2) 1))

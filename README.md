@@ -12,17 +12,13 @@ The opponent strikes on odd turns and waits on even turns. A game lasts at most 
 
 ## Loop
 
-Same tree, not a new file each time:
-
 1. A guide proposes a new `rule` body.
-2. Aura `mutate:rebind`s `rule` on the live program.
-3. `play` scores it.
-4. Keep the body only when the score is strictly higher. Otherwise discard it.
+2. Soft runs `play` on that body (oneshot for now).
+3. Keep the body only when the Soft score is strictly higher than the kept generation.
+4. Commit the winner into `lantern.aura` and append a measured row to `generations.md`.
 
-The guide is an external model. It does not own the loop and it does not invent scores. A generation is real only after Soft runs `play`.
+Scores are invented nowhere. Soft tip for measured rows: `6a13b3d`, binary `/workspace/aura-grok/build/aura`, run inside `ghcr.io/cybrid-systems/dev:v1.0.9` with `AURA_PATH=/workspace/aura-grok/lib` and `AURA_PIPELINE_STRICT=0`.
 
 ## Status
 
-Generation 0 is the seed in `lantern.aura` (`rule` always strikes). Score is unmeasured until a Soft binary runs it.
-
-See `generations.md`.
+Kept generation **2**, Soft score **20**. See `generations.md`.
