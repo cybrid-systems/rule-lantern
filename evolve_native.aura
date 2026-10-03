@@ -1,17 +1,23 @@
-; Aura-native self-evolution for the lantern duel.
-; One Soft process: swarm candidates, hot-strategy:swap! / heal! on `rule`,
-; then the same loop on `opp-policy`.
-; In-session fitness is (play). Soft is the sandbox binary, not this number.
+; Aura-native co-evolution of the lantern duel.
+; Soft binary is the Aura process. In-session fitness is (play), not the binary.
 ;
-; std/swarm:step! keeps the higher fitness (see swarm-note-best! in
-; lib/std/swarm.aura). The task note assumed step! minimizes and asked to
-; return (- 0.0 score). That negation would steer PSO toward worse duels.
-; rule-fit therefore returns the play score. opp-fit returns (- 0.0 score)
-; so the same maximizer searches for a lower player score.
+; `rule` is the player function. std/rule (rule:define / rule:apply) is a
+; different DSL and is not required here. The names collide; do not import it.
 ;
-; set-code needs a workspace. Under production Restricted defaults it fails
-; closed (GeneralObjectPin #2891) and mutate:rebind then has no workspace.
-; AURA_SANDBOX=off is the Soft switch that lets set-code + rebind proceed.
+; hot-strategy is a single active name (*hs-name*). Both `rule` and
+; `opp-policy` still go through hot-strategy:swap! / heal!. Before each
+; swap the active name is register!'d to the name about to change, so
+; heal! restores that name's last-good snapshot (the snapshot includes
+; the other function). If heal! returns false, both best bodies are
+; force-swapped back.
+;
+; std/swarm is one population. A round is: init+step on rule (maximize
+; play), then init+step on opp-policy (fitness is (- 0.0 play)). The
+; second init drops the first population. That is the alternate round.
+;
+; Fiber: swarm "parallel" #t uses fiber:spawn/join inside swarm-eval-pop.
+; That path runs a pure turn-list simulator (no mutate). Concurrent
+; rebind on one workspace is not the fiber path.
 
 (require "std/swarm" all:)
 (require "std/hot-strategy" all:)
@@ -21,18 +27,32 @@
 (define *opp0*
   "(lambda (turn) (if (or (= (modulo turn 2) 1) (>= turn 5)) (if (>= turn 6) 3 2) 0))")
 
-(define *best* -1)
-(define *best-body* *rule0*)
-(define *best-turns* "(2 4 5 20)")
+(define *rule-body* *rule0*)
+(define *rule-turns* "(2 4 5 20)")
+(define *installed-rule* "")
+(define *opp-body* *opp0*)
+(define *installed-opp* "")
+(define *rule-best-current* -1)
+(define *rule-vs-b* -1)
+(define *rule-vs-b-body* *rule0*)
+(define *rule-vs-b-turns* "(2 4 5 20)")
+(define *opp-player* 1000000)
+(define *opp-at-rule* *rule0*)
 (define *heals* 0)
 (define *opp-heals* 0)
+(define *heal-fail* 0)
 (define *swaps* 0)
 (define *swap-ok* 0)
-(define *opp-player* 1000000)
-(define *opp-body* *opp0*)
-(define *set-code-ok* #f)
-(define *rule-gen* 0)
-(define *opp-gen* 0)
+(define *rule-steps* 0)
+(define *opp-steps* 0)
+(define *kinds* "")
+(define *kind-fail* "")
+(define *fiber* 0)
+(define *fiber-note* "not-run")
+(define *colony* "not-run")
+(define *synth* "not-run")
+(define *agent* "not-run")
+(define *orch* "not-run")
 
 (define (nth xs i)
   (let loop ((ys xs) (k i))
@@ -59,18 +79,33 @@
          (d (fresh (clamp-int (nth ind 3) 2 40) a b c)))
     (list a b c d)))
 
+(define (turns->body ts)
+  (string-append
+    "(lambda (hp ehp turn) (cond ((or (= turn " (number->string (nth ts 0))
+    ") (= turn " (number->string (nth ts 1))
+    ") (= turn " (number->string (nth ts 2))
+    ") (= turn " (number->string (nth ts 3))
+    ")) 1) (#t 2)))"))
+
 (define (genes->body ind)
-  (let* ((ts (genes->turns ind))
-         (a (number->string (nth ts 0)))
-         (b (number->string (nth ts 1)))
-         (c (number->string (nth ts 2)))
-         (d (number->string (nth ts 3))))
-    (string-append
-      "(lambda (hp ehp turn) (cond ((or (= turn " a
-      ") (= turn " b
-      ") (= turn " c
-      ") (= turn " d
-      ")) 1) (#t 2)))")))
+  (turns->body (genes->turns ind)))
+
+(define (ant-rule-turns name)
+  (cond ((equal? name "t-24520") (list 2 4 5 20))
+        ((equal? name "t-24516") (list 2 4 5 16))
+        ((equal? name "t-24518") (list 2 4 5 18))
+        ((equal? name "t-24519") (list 2 4 5 19))
+        ((equal? name "t-23416") (list 2 3 4 16))
+        ((equal? name "t-24512") (list 2 4 5 12))
+        ((equal? name "t-1234") (list 1 2 3 4))
+        (#t (list 2 4 5 20))))
+
+(define (rule-of ind)
+  (if (string? ind)
+      (let ((ts (ant-rule-turns ind)))
+        (cons (turns->body ts) ts))
+      (let ((ts (genes->turns ind)))
+        (cons (turns->body ts) ts))))
 
 (define (opp-genes->body ind)
   (let* ((start (clamp-int (nth ind 0) 1 30))
@@ -85,52 +120,108 @@
       ") (if (= (modulo turn 2) 1) " (number->string early)
       " 0)))")))
 
+(define (ant-opp-body name)
+  (cond ((equal? name "o-b") *opp0*)
+        ((equal? name "o-all3") (opp-genes->body (list 1 1 30 30)))
+        ((equal? name "o-all2") (opp-genes->body (list 1 1 0 0)))
+        ((equal? name "o-from5") (opp-genes->body (list 5 6 0 30)))
+        ((equal? name "o-from1-d2") (opp-genes->body (list 1 48 0 0)))
+        ((equal? name "o-late") (opp-genes->body (list 2 34 0 0)))
+        (#t *opp0*)))
+
+(define (opp-of ind)
+  (if (string? ind) (ant-opp-body ind) (opp-genes->body ind)))
+
 (define (swap-ok? name body)
   (set! *swaps* (+ *swaps* 1))
   (let ((r (try (hot-strategy:swap! name body "lantern-native")
                 (catch (e) (list #f e)))))
     (if (and (pair? r) (equal? (car r) #t))
-        (begin (set! *swap-ok* (+ *swap-ok* 1)) #t)
+        (begin
+          (set! *swap-ok* (+ *swap-ok* 1))
+          (if (equal? name "rule")
+              (set! *installed-rule* body)
+              (set! *installed-opp* body))
+          #t)
         #f)))
 
+(define (note-kind s)
+  (set! *kinds* (string-append *kinds* s " ")))
+
+(define (note-fail s)
+  (set! *kind-fail* (string-append *kind-fail* s " ")))
+
+(define (vs-b?)
+  (equal? *opp-body* *opp0*))
+
+(define (heal-active!)
+  (let ((h (try (hot-strategy:heal!) (catch (e) #f))))
+    (if h
+        #t
+        (begin
+          (set! *heal-fail* (+ *heal-fail* 1))
+          #f))))
+
+(define (force-pair)
+  (swap-ok? "rule" *rule-body*)
+  (hot-strategy:register! "rule" *rule-body*)
+  (swap-ok? "opp-policy" *opp-body*)
+  (hot-strategy:register! "opp-policy" *opp-body*))
+
+; Single-name hot-strategy: register the name we are about to swap so
+; heal! snapshots the current best pair under that name.
+(define (arm! name body)
+  (hot-strategy:register! name body))
+
 (define (rule-fit ind)
-  (let ((body (genes->body ind)))
+  (let* ((rb (rule-of ind))
+         (body (car rb))
+         (ts (cdr rb)))
     (if (not (swap-ok? "rule" body))
         -1000000.0
         (let ((score (try (play) (catch (e) -1))))
           (cond ((not (number? score))
                  (set! *heals* (+ *heals* 1))
-                 (hot-strategy:heal!)
+                 (heal-active!)
                  -1000000.0)
-                ((< score *best*)
-                 (set! *heals* (+ *heals* 1))
-                 (hot-strategy:heal!)
+                ((> score *rule-best-current*)
+                 (set! *rule-best-current* score)
+                 (set! *rule-body* body)
+                 (set! *rule-turns* ts)
+                 (set! *installed-rule* body)
+                 (if (vs-b?)
+                     (begin
+                       (set! *rule-vs-b* score)
+                       (set! *rule-vs-b-body* body)
+                       (set! *rule-vs-b-turns* ts))
+                     #f)
+                 (arm! "rule" body)
                  score)
-                ((> score *best*)
-                 (set! *best* score)
-                 (set! *best-body* body)
-                 (set! *best-turns* (genes->turns ind))
-                 (hot-strategy:register! "rule" body)
+                ((< score *rule-best-current*)
+                 (set! *heals* (+ *heals* 1))
+                 (heal-active!)
                  score)
                 (#t score))))))
 
 (define (opp-fit ind)
-  (let ((body (opp-genes->body ind)))
+  (let ((body (opp-of ind)))
     (if (not (swap-ok? "opp-policy" body))
         -1000000.0
         (let ((score (try (play) (catch (e) 1000000))))
           (cond ((not (number? score))
                  (set! *opp-heals* (+ *opp-heals* 1))
-                 (hot-strategy:heal!)
+                 (heal-active!)
                  -1000000.0)
-                ((> score *opp-player*)
-                 (set! *opp-heals* (+ *opp-heals* 1))
-                 (hot-strategy:heal!)
-                 (- 0.0 score))
                 ((< score *opp-player*)
                  (set! *opp-player* score)
                  (set! *opp-body* body)
-                 (hot-strategy:register! "opp-policy" body)
+                 (set! *opp-at-rule* *rule-body*)
+                 (set! *installed-opp* body)
+                 (arm! "opp-policy" body)
+                 (- 0.0 score))
+                ((> score *opp-player*)
+                 (set! *opp-heals* (+ *opp-heals* 1))
+                 (heal-active!)
                  (- 0.0 score))
                 (#t (- 0.0 score)))))))
 
@@ -138,103 +229,297 @@
   (let ((src (try (read-file "/workspace/rule-lantern/lantern.aura")
                   (catch (e) e))))
     (if (not (string? src))
-        (begin
-          (display "SET_CODE=read-failed\n")
-          #f)
+        (begin (display "SET_CODE=read-failed\n") #f)
         (let ((sc (try (set-code src) (catch (e) e))))
           (display "SET_CODE=")
           (display (if (equal? sc #t) "ok" sc))
           (newline)
           (if (equal? sc #t)
-              (begin
-                (eval-current)
-                (set! *set-code-ok* #t)
-                #t)
+              (begin (eval-current) #t)
               #f)))))
 
-(define (seed-baseline)
-  (let ((s0 (try (play) (catch (e) -1))))
-    (display "BASE_PLAY=")
-    (display s0)
+(define (bounds4 lo hi)
+  (list (list lo hi) (list lo hi) (list lo hi) (list lo hi)))
+
+(define (init-num kind seed pop lo hi)
+  (swarm:parallel! #f)
+  (swarm:init (hash "kind" kind
+                    "dim" 4
+                    "pop" pop
+                    "seed" seed
+                    "bounds" (bounds4 lo hi))))
+
+(define (init-ant seed ops)
+  (swarm:parallel! #f)
+  (swarm:init (hash "kind" "ant"
+                    "pop" 4
+                    "seed" seed
+                    "evaporate" 0.9
+                    "ops" ops)))
+
+(define (rule-step kind)
+  (arm! "rule" *rule-body*)
+  (let ((k (try (begin (swarm:step! rule-fit) (swarm:kind))
+                (catch (e) (list "fail" e)))))
+    (set! *rule-steps* (+ *rule-steps* 1))
+    (if (equal? k kind)
+        (note-kind (string-append "rule:" kind))
+        (note-fail (string-append "rule:" kind "=" (if (string? k) k "err"))))
+    (swap-ok? "rule" *rule-body*)
+    (arm! "rule" *rule-body*)))
+
+(define (opp-step kind)
+  (arm! "opp-policy" *opp-body*)
+  (let ((k (try (begin (swarm:step! opp-fit) (swarm:kind))
+                (catch (e) (list "fail" e)))))
+    (set! *opp-steps* (+ *opp-steps* 1))
+    (if (equal? k kind)
+        (note-kind (string-append "opp:" kind))
+        (note-fail (string-append "opp:" kind "=" (if (string? k) k "err"))))
+    (swap-ok? "opp-policy" *opp-body*)
+    (arm! "opp-policy" *opp-body*)))
+
+(define (round-num kind seed pop rlo rhi olo ohi)
+  (init-num kind seed pop rlo rhi)
+  (rule-step kind)
+  ; Opponent search sees the rule this round just kept.
+  (set! *rule-best-current* (try (play) (catch (e) *rule-best-current*)))
+  (init-num kind (+ seed 1) pop olo ohi)
+  (opp-step kind)
+  ; Next rule round is scored against the opp this round just kept.
+  (set! *rule-best-current* (try (play) (catch (e) *rule-best-current*))))
+
+(define (round-ant seed)
+  (init-ant seed
+            (list "t-24520" "t-24516" "t-24518" "t-24519"
+                  "t-23416" "t-24512" "t-1234"))
+  (rule-step "ant")
+  (set! *rule-best-current* (try (play) (catch (e) *rule-best-current*)))
+  (init-ant (+ seed 1)
+            (list "o-b" "o-all3" "o-all2" "o-from5" "o-from1-d2" "o-late"))
+  (opp-step "ant")
+  (set! *rule-best-current* (try (play) (catch (e) *rule-best-current*))))
+
+; Pure Arena T simulator for fiber pop eval. Strike turns else dodge.
+; Reads live opp-policy. Does not rebind.
+(define (clamp n lo hi)
+  (cond ((< n lo) lo)
+        ((> n hi) hi)
+        (#t n)))
+
+(define (sim-play ts)
+  (let loop ((hp 8) (ehp 8) (turn 1) (score 0))
+    (cond ((or (<= hp 0) (<= ehp 0) (> turn 48)) score)
+          (#t
+           (let* ((action (if (or (= turn (nth ts 0))
+                                  (= turn (nth ts 1))
+                                  (= turn (nth ts 2))
+                                  (= turn (nth ts 3)))
+                              1 2))
+                  (dealt (if (= action 1) 2 0))
+                  (pol (opp-policy turn))
+                  (them (> pol 0))
+                  (chip (if (and (>= turn 15) them (= action 2)) 1 0))
+                  (dmg (if (> pol 0) pol 2))
+                  (base-taken (cond ((and them (= action 2)) 0)
+                                    (them dmg)
+                                    (#t 0)))
+                  (taken (+ base-taken chip))
+                  (hp2 (clamp (- hp taken) 0 8))
+                  (ehp2 (clamp (- ehp dealt) 0 8))
+                  (lived (if (> hp2 0) 1 0))
+                  (bonus (if (and (<= ehp2 0) (>= hp2 2)) 2 0)))
+             (loop hp2 ehp2 (+ turn 1) (+ score dealt lived bonus)))))))
+
+(define (fiber-pop!)
+  (let ((spawned (try (fiber:join (fiber:spawn (lambda () 41)))
+                      (catch (e) (list "fail" e)))))
+    (display "FIBER_SPAWN=")
+    (display spawned)
     (newline)
-    (set! *best* (if (number? s0) s0 -1))
-    (set! *opp-player* (if (number? s0) s0 1000000))
-    (hot-strategy:register! "rule" *rule0*)))
+    (if (not (equal? spawned 41))
+        (begin
+          (set! *fiber* 0)
+          (set! *fiber-note* "spawn-join-failed"))
+        (let ((base-sim (try (sim-play (list 2 4 5 20)) (catch (e) e)))
+              (base-play (try (play) (catch (e) e))))
+          (display "FIBER_SIM_BASE=")
+          (display base-sim)
+          (newline)
+          (display "FIBER_PLAY_BASE=")
+          (display base-play)
+          (newline)
+          (if (not (equal? base-sim base-play))
+              (begin
+                (set! *fiber* 0)
+                (set! *fiber-note* "sim-mismatch-skip-pop"))
+              (let ((pop (try
+                           (begin
+                             (swarm:init (hash "kind" "pso"
+                                               "dim" 4
+                                               "pop" 4
+                                               "seed" 9001
+                                               "parallel" #t
+                                               "bounds" (bounds4 2.0 40.0)))
+                             (swarm:step! (lambda (ind) (sim-play (genes->turns ind))))
+                             (swarm:best))
+                           (catch (e) (list "fail" e)))))
+                (display "FIBER_POP_BEST=")
+                (display pop)
+                (newline)
+                (if (not (pair? pop))
+                    (begin
+                      (set! *fiber* 0)
+                      (set! *fiber-note* "parallel-step-failed"))
+                    (begin
+                      (set! *fiber* 1)
+                      (set! *fiber-note* "swarm-parallel-pso")
+                      (swarm:parallel! #f)
+                      (let* ((ts (genes->turns pop))
+                             (body (turns->body ts))
+                             (simv (sim-play ts)))
+                        (arm! "rule" *rule-body*)
+                        (if (swap-ok? "rule" body)
+                            (let ((sc (try (play) (catch (e) -1))))
+                              (display "FIBER_CONFIRM_PLAY=")
+                              (display sc)
+                              (newline)
+                              (display "FIBER_CONFIRM_SIM=")
+                              (display simv)
+                              (newline)
+                              (if (and (number? sc) (> sc *rule-vs-b*) (vs-b?))
+                                  (begin
+                                    (set! *rule-vs-b* sc)
+                                    (set! *rule-vs-b-body* body)
+                                    (set! *rule-vs-b-turns* ts)
+                                    (set! *rule-body* body)
+                                    (set! *rule-turns* ts)
+                                    (set! *rule-best-current* sc)
+                                    (arm! "rule" body))
+                                  (begin
+                                    (set! *heals* (+ *heals* 1))
+                                    (heal-active!)
+                                    (swap-ok? "rule" *rule-body*)
+                                    (arm! "rule" *rule-body*))))
+                            (display "FIBER_CONFIRM_SWAP_FAIL\n")))))))))))
 
-(define (run-rule-phase)
-  (swarm:init (hash "kind" "pso"
-                    "dim" 4
-                    "pop" 8
-                    "seed" 424242
-                    "bounds" (list (list 2.0 40.0)
-                                   (list 2.0 40.0)
-                                   (list 2.0 40.0)
-                                   (list 2.0 40.0))))
-  (swarm:step! rule-fit)
-  (swarm:step! rule-fit)
-  (swarm:step! rule-fit)
-  (set! *rule-gen* (swarm:gen))
-  ; Put the promoted body back. Last equal candidate may still be live.
-  (swap-ok? "rule" *best-body*)
-  (hot-strategy:register! "rule" *best-body*))
+(define (show tag v)
+  (display tag)
+  (display "=")
+  (display v)
+  (newline))
 
-(define (run-opp-phase)
-  (swarm:init (hash "kind" "pso"
-                    "dim" 4
-                    "pop" 8
-                    "seed" 424243
-                    "bounds" (list (list 1.0 30.0)
-                                   (list 1.0 40.0)
-                                   (list 2.0 40.0)
-                                   (list 2.0 40.0))))
-  (swarm:step! opp-fit)
-  (swarm:step! opp-fit)
-  (set! *opp-gen* (swarm:gen))
-  (swap-ok? "opp-policy" *opp-body*)
-  (hot-strategy:register! "opp-policy" *opp-body*))
+(define *opp-kept* *opp0*)
+
+(define (remeasure-b)
+  (set! *opp-kept* *opp-body*)
+  (set! *rule-body* *rule-vs-b-body*)
+  (set! *rule-turns* *rule-vs-b-turns*)
+  (set! *opp-body* *opp0*)
+  (force-pair)
+  (try (play) (catch (e) e)))
+
+(define (probe-tail)
+  (require "std/orchestrator" all:)
+  (set! *orch*
+    (try
+      (begin
+        (orch:define-role "echo" (hash "handler" (lambda (x) x)))
+        (orch:step "echo" 7))
+      (catch (e) (list "fail" e))))
+  (show "NATIVE_ORCH" *orch*)
+
+  ; std/agent is required before the swarm. Requiring it after a long
+  ; mutate session aborted the process (unbound api-url inside agent.aura).
+  (require "std/ant" all:)
+  (set! *colony*
+    (try (colony:search "27" 1) (catch (e) (list "fail" e))))
+  (show "NATIVE_COLONY" *colony*)
+
+  ; colony:search set-codes and rebinds. Put the duel file back, then
+  ; the kept pair. Do this before synthesize so optimize sees the duel,
+  ; and again after so the process does not keep a colony body.
+  (install-duel)
+  (force-pair)
+
+  (set! *synth*
+    (try
+      (synthesize:optimize "rule"
+                           :population 2
+                           :generations 1
+                           :mutation-rate 0.2
+                           :fitness "(play)")
+      (catch (e) (list "fail" e))))
+  (show "NATIVE_SYNTH" *synth*)
+  (install-duel)
+  (force-pair))
 
 (display "NATIVE_START\n")
 (if (install-duel)
-    (begin
-      (seed-baseline)
-      (run-rule-phase)
-      (run-opp-phase)
-      (display "FINAL_PLAY=")
-      (display (try (play) (catch (e) e)))
-      (newline))
+    (let ((s0 (try (play) (catch (e) -1))))
+      (show "BASE_PLAY" s0)
+      (set! *rule-best-current* (if (number? s0) s0 -1))
+      (set! *rule-vs-b* (if (number? s0) s0 -1))
+      (set! *opp-player* (if (number? s0) s0 1000000))
+      (set! *installed-rule* *rule0*)
+      (set! *installed-opp* *opp0*)
+      (arm! "rule" *rule0*)
+      (arm! "opp-policy" *opp0*)
+      (set! *agent*
+        (try
+          (begin
+            (require "std/agent" all:)
+            (agent:closed-loop-once :skip-set-code :summary "probe-clamp"
+                                    :rebind "clamp"
+                                    "(lambda (n lo hi) (cond ((< n lo) lo) ((> n hi) hi) (#t n)))"))
+          (catch (e) (list "fail" e))))
+      (show "NATIVE_AGENT" *agent*)
+      (let ((ap (try (play) (catch (e) e))))
+        (if (not (equal? ap s0))
+            (begin
+              (install-duel)
+              (arm! "rule" *rule0*)
+              (arm! "opp-policy" *opp0*)
+              (show "AGENT_PLAY_RESET" ap))
+            (show "AGENT_PLAY" ap)))
+      (fiber-pop!)
+      (swarm:parallel! #f)
+      ; Alternate rounds: each round is one swarm step on rule (maximize
+      ; play) then one on opp-policy (minimize player play). std/swarm
+      ; holds a single population, so each side re-inits.
+      (round-num "pso" 424242 4 2.0 40.0 1.0 40.0)
+      (round-num "pso" 424244 4 2.0 40.0 1.0 40.0)
+      (round-ant 424250)
+      (round-num "grid" 424260 4 2.0 40.0 1.0 40.0)
+      (round-num "abc" 424270 4 2.0 40.0 1.0 40.0)
+      (show "NATIVE_OPP_INSEARCH" *opp-player*)
+      (let ((vs-b (remeasure-b)))
+        (show "NATIVE_RULE_BEST" vs-b)
+        (show "NATIVE_RULE_TURNS" *rule-vs-b-turns*)
+        (show "NATIVE_RULE" *rule-vs-b-body*)
+        ; Remeasure kept-vs-B rule against the opp body saved before the
+        ; B remeasure, then the rule that was installed when that opp won.
+        (set! *opp-body* *opp-kept*)
+        (set! *rule-body* *rule-vs-b-body*)
+        (force-pair)
+        (show "NATIVE_VS_OPP" (try (play) (catch (e) e)))
+        (set! *opp-body* *opp-kept*)
+        (set! *rule-body* *opp-at-rule*)
+        (force-pair)
+        (show "NATIVE_OPP_BEST" (try (play) (catch (e) e)))
+        (show "NATIVE_OPP" *opp-body*)
+        (show "NATIVE_OPP_AT_RULE" *opp-at-rule*))
+      (show "NATIVE_HEAL" *heals*)
+      (show "NATIVE_OPP_HEAL" *opp-heals*)
+      (show "NATIVE_HEAL_FAIL" *heal-fail*)
+      (show "NATIVE_SWAP_OK" (string-append (number->string *swap-ok*) "/" (number->string *swaps*)))
+      (show "NATIVE_RULE_STEPS" *rule-steps*)
+      (show "NATIVE_OPP_STEPS" *opp-steps*)
+      (show "NATIVE_KINDS" *kinds*)
+      (show "NATIVE_KIND_FAIL" *kind-fail*)
+      (show "NATIVE_FIBER" *fiber*)
+      (show "NATIVE_FIBER_NOTE" *fiber-note*)
+      (probe-tail)
+      (show "NATIVE_PLAY_RESTORED" (try (play) (catch (e) e))))
     (display "NATIVE_INSTALL_FAILED\n"))
-
-(display "NATIVE_BEST=")
-(display *best*)
-(newline)
-(display "NATIVE_GEN=")
-(display *rule-gen*)
-(newline)
-(display "NATIVE_VIA=swarm+hot-strategy\n")
-(display "NATIVE_HEAL=")
-(display *heals*)
-(newline)
-(display "NATIVE_OPP_HEAL=")
-(display *opp-heals*)
-(newline)
-(display "NATIVE_OPP_GEN=")
-(display *opp-gen*)
-(newline)
-(display "NATIVE_OPP_PLAYER=")
-(display *opp-player*)
-(newline)
-(display "NATIVE_SWAP_OK=")
-(display *swap-ok*)
-(display "/")
-(display *swaps*)
-(newline)
-(display "NATIVE_TURNS=")
-(display *best-turns*)
-(newline)
-(display "NATIVE_RULE=")
-(display *best-body*)
-(newline)
-(display "NATIVE_OPP=")
-(display *opp-body*)
-(newline)
 (display "NATIVE_DONE\n")
