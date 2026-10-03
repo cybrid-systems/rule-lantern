@@ -8,7 +8,7 @@ Same Soft process, closed loop. Not a host edit of a rule file.
 2. Propose a body, `hot-strategy:swap!` it into the live AST, `(play)`, keep (`register!`) or `heal!`.
 3. Alternate arms-race rounds, N=4. Odd: PSO on `rule` strike-turn genes, ant on `opp-policy`. Even: ant on `rule`, PSO on `opp-policy`. Pop 4.
 4. After every swap, the workspace `step` body must still contain `dodge-chip`, `base-taken`, and `(taken (+ base-taken chip))`. If not, `heal!` and `RSI_GATE_REJECT`.
-5. Fiber: `fiber:spawn` / `fiber:join`, then one PSO step with "parallel" #t on a pure simulator (no rebind). The confirm swap goes through the same gate.
+5. Fiber: `fiber:spawn` / `fiber:join`, then one PSO step with `"parallel" #t` on a pure simulator (no rebind). The confirm swap goes through the same gate.
 
 `std/rule` is not loaded. The duel function is named `rule`.
 
