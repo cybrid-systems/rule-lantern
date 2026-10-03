@@ -92,7 +92,7 @@ Arena F ceiling **24** (8 damage + 16 lived). Gen 11 hit it.
 
 Arena G ceiling **28** (8 damage + 20 lived). Gen 13 hit it.
 
-## Arena H (current): arena B strikes; max **24** turns
+## Arena H: arena B strikes; max **24** turns
 
 | gen | status | score | Soft tip | rule | note |
 |-----|--------|-------|----------|------|------|
@@ -105,6 +105,32 @@ Arena G ceiling **28** (8 damage + 20 lived). Gen 13 hit it.
 | 15c | discarded | 32 | 6a13b3d | strike on turns 2,4,10,24; else dodge | equal to kept 32 |
 
 Arena H ceiling **32** (8 damage + 24 lived). Gen 15 hit it.
+
+## Arena I: arena B strikes; max **28** turns
+
+| gen | status | score | Soft tip | rule | note |
+|-----|--------|-------|----------|------|------|
+| 16 | measured baseline | 32 | 6a13b3d | strike 2,4,6,24; else dodge | gen 15 rule under longer match |
+| 16b | discarded | 28 | 6a13b3d | always dodge | naive |
+| 16c | discarded | 34 | 6a13b3d | wait T2; strike 4,6,28 | below kept 36 |
+| 16d | discarded | 34 | 6a13b3d | strike 2,4,6,26 | finish before last |
+| 17 | **kept** | **36** | 6a13b3d | strike on turns 2,4,6,28; else dodge | delay kill to turn 28 |
+| 17b | discarded | 36 | 6a13b3d | strike on turns 2,4,8,28; else dodge | equal to kept 36 |
+
+Arena I ceiling **36** (8 damage + 28 lived). Gen 17 hit it.
+
+## Arena J (current): arena B strikes; max **32** turns
+
+| gen | status | score | Soft tip | rule | note |
+|-----|--------|-------|----------|------|------|
+| 18 | measured baseline | 36 | 6a13b3d | strike 2,4,6,28; else dodge | gen 17 rule under longer match |
+| 18b | discarded | 32 | 6a13b3d | always dodge | naive |
+| 18c | discarded | 38 | 6a13b3d | wait T2; strike 4,6,32 | below kept 40 |
+| 19 | **kept** | **40** | 6a13b3d | strike on turns 2,4,6,32; else dodge | delay kill to turn 32 |
+| 19b | discarded | 40 | 6a13b3d | strike on turns 2,4,8,32; else dodge | equal to kept 40 |
+| 19c | discarded | 40 | 6a13b3d | strike on turns 2,4,10,32; else dodge | equal to kept 40 |
+
+Arena J ceiling **40** (8 damage + 32 lived). Gen 19 hit it.
 
 ## How a generation lands
 
