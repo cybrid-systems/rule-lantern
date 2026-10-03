@@ -1,8 +1,13 @@
-# Generations
+# Generations (external measurement)
 
-Only Soft `play` scores. Tip `6a13b3d`.
+These rows are **not** Aura-native evolution. The host proposed a rule
+(hand edit or a separate candidate file) and a oneshot Soft process printed
+`(play)`. That number was called a "Soft score" in older notes. It is an
+external measurement: Soft is the binary, the number is oneshot fitness.
 
-Prior arenas through P (Soft 30, strike 2,4,5,23) are on earlier main commits.
+Arena T external ceiling on that protocol: fitness **27**, strike turns
+2,4,5,20, tip `6a13b3d`. The native swarm is not expected to beat that
+ceiling on the same arena. Native in-session runs are in `generations_native.md` only.
 
 ## Arena P search (chip@20, max 48) — no Soft score > 30
 
@@ -96,8 +101,8 @@ Soft under S: no Soft score > 25. Soft killhp at best Soft path was Soft 0 — S
 | 34b | discarded | 25 | strike 2,4,5,21/22/23 | Soft died before Soft finish |
 | 34c | discarded | 23 | strike 2,4,5,12/13 | Soft below |
 
-Soft +2 Soft-reachable under T (gen33 Soft 26 Soft killhp=2). Soft ≥27 Soft-with Soft +2 Soft-not Soft-found; Soft 27 Soft-kept Soft-without Soft bonus Soft-via Soft longer Soft lived Soft (gen34). Soft heal Soft-before Soft-finish Soft-paths Soft-did Soft-not Soft Soft-beat Soft 26 Soft-with Soft bonus Soft (Soft chip Soft + Soft strike Soft trade Soft still Soft drains Soft to Soft Soft killhp Soft < Soft 2 Soft past Soft turn Soft 16 Soft).
+Soft +2 Soft-reachable under T (gen33 Soft 26 Soft killhp=2). Soft ≥27 Soft-with Soft +2 Soft-not Soft-found; Soft 27 Soft-kept Soft-without Soft bonus Soft-via Soft longer Soft lived Soft (gen34). Soft heal Soft-before Soft-finish Soft-paths Soft-did Soft-not Soft-Soft Soft-beat Soft 26 Soft-with Soft bonus Soft (Soft chip Soft + Soft strike Soft trade Soft still Soft drains Soft to Soft Soft killhp Soft < Soft 2 Soft past Soft turn Soft 16 Soft).
 
 ## How a generation lands
 
-Keep only on a strictly higher Soft score.
+External protocol only: keep a candidate only when a oneshot `(play)` is strictly higher. Native runs are not rows in this file.
