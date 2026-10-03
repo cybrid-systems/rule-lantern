@@ -1,111 +1,54 @@
-; Restricted-path probe. No set-code.
-; The duel is defined in this file. `rule` is the player function,
-; not the std/rule DSL.
-; Arena T physics (same step/play as lantern.aura).
+; Restricted probe. No AURA_SANDBOX=off. No set-code.
+; `rule` here is the duel player, not the std/rule DSL.
+;
+; argv `./aura evolve_restricted.aura` evaluates this file. That does
+; not install workspace_flat_ (only set-code / load do). This script
+; records that, then tries (load lantern.aura), which is the other
+; Soft workspace install, then mutate:rebind. If mutate is denied,
+; NATIVE_RESTRICTED_OK=0 and this branch stops.
 
-(define (rule hp ehp turn)
-  (cond ((or (= turn 2) (= turn 4) (= turn 5) (= turn 20)) 1)
-        (#t 2)))
+(define (show k v)
+  (display k)
+  (display "=")
+  (display v)
+  (newline))
 
-(define (opp-policy turn)
-  (if (or (= (modulo turn 2) 1) (>= turn 5))
-      (if (>= turn 6) 3 2)
-      0))
+(show "SANDBOX" (getenv "AURA_SANDBOX"))
+(show "ARGV_CURRENT_LEN" (string-length (current-source)))
+(show "ARGV_WS_LEN" (string-length (current-source :workspace)))
+(show "SNAP_BEFORE" (try (ast:snapshot) (catch (e) e)))
 
-(define (opp-strike? turn)
-  (> (opp-policy turn) 0))
+(define *loaded*
+  (try (load "/workspace/rule-lantern/lantern.aura") (catch (e) e)))
+(show "LOAD" *loaded*)
+(show "SNAP_AFTER_LOAD" (try (ast:snapshot) (catch (e) e)))
 
-(define (opp-damage turn)
-  (let ((p (opp-policy turn)))
-    (if (> p 0) p 2)))
+(define *before* (try (play) (catch (e) e)))
+(show "PLAY_BEFORE" *before*)
 
-(define (dodge-chip turn action them)
-  (if (and (>= turn 15) them (= action 2)) 1 0))
+(define *alt* "(define (rule hp ehp t) (if (= t 16) 1 0))")
+(define *rebind*
+  (try (mutate:rebind "rule" *alt* "restricted-strike16") (catch (e) e)))
+(show "REBIND" *rebind*)
 
-(define (clamp n lo hi)
-  (cond ((< n lo) lo)
-        ((> n hi) hi)
-        (#t n)))
+(define *denied*
+  (or (not (equal? *rebind* #t))
+      (and (pair? *rebind*) (equal? (car *rebind*) 'capability-denied))))
 
-(define (step hp ehp turn action)
-  (let* ((them (opp-strike? turn))
-         (dealt (if (= action 1) 2 0))
-         (chip (dodge-chip turn action them))
-         (base-taken (cond ((and them (= action 2)) 0)
-                           (them (opp-damage turn))
-                           (#t 0)))
-         (taken (+ base-taken chip))
-         (healed (if (= action 0) 1 0))
-         (hp2 (clamp (- (+ hp healed) taken) 0 8))
-         (ehp2 (clamp (- ehp dealt) 0 8)))
-    (cons hp2 ehp2)))
-
-(define (play)
-  (let loop ((hp 8) (ehp 8) (turn 1) (score 0))
-    (cond ((or (<= hp 0) (<= ehp 0) (> turn 48)) score)
-          (#t
-           (let* ((action (rule hp ehp turn))
-                  (dealt (if (= action 1) 2 0))
-                  (nxt (step hp ehp turn action))
-                  (hp2 (car nxt))
-                  (ehp2 (cdr nxt))
-                  (lived (if (> hp2 0) 1 0))
-                  (bonus (if (and (<= ehp2 0) (>= hp2 2)) 2 0)))
-             (loop hp2 ehp2 (+ turn 1) (+ score dealt lived bonus)))))))
-
-(require "std/hot-strategy" all:)
-
-(display "RESTRICTED_START\n")
-(display "NATIVE_SET_CODE=skipped\n")
-
-(define *base* (try (play) (catch (e) e)))
-(display "BASE_PLAY=")
-(display *base*)
-(newline)
-
-(define *snap* (try (ast:snapshot "restricted-noset") (catch (e) e)))
-(display "SNAP=")
-(display *snap*)
-(newline)
-(display "SNAP_REASON=")
-(display (try (ast:snapshot-fail-reason) (catch (e) e)))
-(newline)
-
-(define *alt*
-  "(lambda (hp ehp turn) (cond ((or (= turn 2) (= turn 4) (= turn 5) (= turn 16)) 1) (#t 2)))")
-
-(define *re*
-  (try (mutate:rebind "rule" *alt* "restricted-no-set-code")
-       (catch (e) (list "fail" e))))
-(display "REBIND=")
-(display *re*)
-(newline)
-
-(define *hs*
-  (try (hot-strategy:swap! "rule" *alt* "restricted-hs")
-       (catch (e) (list "fail" e))))
-(display "HS_SWAP=")
-(display *hs*)
-(newline)
-
-(define *after* (try (rule 8 8 16) (catch (e) e)))
-(display "RULE_AT_16=")
-(display *after*)
-(newline)
-
-(define *play2* (try (play) (catch (e) e)))
-(display "PLAY_AFTER=")
-(display *play2*)
-(newline)
-
-; Green only if the live rule changes. Turn 16 is dodge (2) on the
-; initial rule and strike (1) on *alt*. A (#t ...) from hot-strategy:swap!
-; with snap -1 does not count: the running define is not the workspace.
-(define *ok* (and (number? *after*) (= *after* 1)))
-
-(display "NATIVE_RESTRICTED_OK=")
-(display (if *ok* 1 0))
-(newline)
-(if (not *ok*)
-    (display "NATIVE_RESTRICTED_REASON=no-workspace snap -1; user mutate:rebind capability-denied; hot-strategy:swap! returned #t but live rule at turn 16 stayed 2 and play stayed 27\n"))
-(display "RESTRICTED_DONE\n")
+(if (not (equal? *rebind* #t))
+    (begin
+      (show "NATIVE_RESTRICTED_OK" 0)
+      (show "RESTRICTED_STOP" "mutate-denied-or-not-true"))
+    (begin
+      (try (eval-current) (catch (e) (show "EVAL_CURRENT" e)))
+      (let ((after (try (play) (catch (e) e)))
+            (at16 (try (rule 8 8 16) (catch (e) e))))
+        (show "PLAY_AFTER" after)
+        (show "RULE_AT_16" at16)
+        (show "NATIVE_RESTRICTED_OK"
+              (if (and (number? *before*)
+                       (number? after)
+                       (not (= *before* after))
+                       (equal? at16 1))
+                  1
+                  0)))))

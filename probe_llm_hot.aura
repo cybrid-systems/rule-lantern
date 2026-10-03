@@ -1,0 +1,25 @@
+; std/llm and std/hot-update. No API key is passed in.
+
+(require "std/llm" all:)
+(require "std/hot-update" all:)
+
+(define (show k v)
+  (display k)
+  (display "=")
+  (display v)
+  (newline))
+
+(define *k* (getenv "LLM_API_KEY"))
+(show "LLM_KEY_LEN" (if (string? *k*) (string-length *k*) 0))
+(show "LLM_CALL" (try (aura-llm-call "ping") (catch (e) e)))
+(define *chat* (try (llm:chat "sys" "ping") (catch (e) e)))
+(show "LLM_CHAT_OK" (try (hash-ref *chat* "ok") (catch (e) e)))
+(show "LLM_CHAT_ERR" (try (hash-ref *chat* "error") (catch (e) e)))
+(show "LLM_CHAT_CONTENT" (try (hash-ref *chat* "content") (catch (e) e)))
+(define *st* (try (llm:call-stats) (catch (e) e)))
+(show "LLM_STAT_NO_KEY" (try (hash-ref *st* "no-key") (catch (e) e)))
+(show "LLM_STAT_FAIL" (try (hash-ref *st* "fail") (catch (e) e)))
+(show "HOT_CFG" (try (hot-update:make-config 1 2 #f) (catch (e) e)))
+(show "HOT_VER" (try (hot-update:get-module-version) (catch (e) e)))
+(show "HOT_HEALTH" (try (hot-update:health) (catch (e) e)))
+(show "HOT_REGION" (try (hot-update:get-region) (catch (e) e)))

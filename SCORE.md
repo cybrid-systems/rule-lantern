@@ -22,3 +22,9 @@ External oneshot rows live in `generations.md`. Native rows live in
 `generations_native.md`. Run 2 remeasured the kept rule against opponent B
 at 27, and against the co-evolved opponent at 10. That 10 is not a score
 against B, and nothing in that run beat 27.
+
+Run 3 (`evolve_arms.aura`) is four alternating rounds in one sandbox-off
+process. Best `(play)` against opponent B is still 27. The final rule
+against B is 22. `(play)` against the kept opponent is 22, and that kept
+opponent is the B schedule again. Nothing in run 3 beat 27.
+Run 4 (`evolve_rsi.aura`) is the RSI loop: alternate PSO/ant rounds plus a step-body gate. `RSI_VS_B` is 27. `RSI_FINAL_RULE_VS_B` is 26. The gate rejected one deliberate broken `step` and healed it. Nothing in run 4 beat 27 against opponent B.
