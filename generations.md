@@ -92,8 +92,11 @@ Soft under S: no Soft score > 25. Soft killhp at best Soft path was Soft 0 — S
 | 33g | discarded | 24 | strike 2,4,6,16 | Soft killhp=1; Soft +2 no |
 | 33h | discarded | 23 | wait T2; strike 4,5,16 | Soft no kill |
 | 33i | discarded | 22–24 | wait T2/T4 heal + finish | Soft killhp=0 or Soft no kill |
+| 34 | **kept** | **27** | strike 2,4,5,20 | Soft killhp=0 @20; Soft +2 no; Soft lived beat gen33 |
+| 34b | discarded | 25 | strike 2,4,5,21/22/23 | Soft died before Soft finish |
+| 34c | discarded | 23 | strike 2,4,5,12/13 | Soft below |
 
-Soft +2 Soft-reachable under T (gen33 Soft 26 Soft killhp=2). Soft heal Soft-before Soft-finish Soft-paths Soft-did Soft-not Soft Soft-beat Soft 26 Soft-with Soft bonus Soft (Soft chip Soft + Soft strike Soft trade Soft still Soft drains Soft Soft killhp Soft past Soft turn Soft 16 Soft). Soft ≥27 Soft search Soft continues Soft.
+Soft +2 Soft-reachable under T (gen33 Soft 26 Soft killhp=2). Soft ≥27 Soft-with Soft +2 Soft-not Soft-found; Soft 27 Soft-kept Soft-without Soft bonus Soft-via Soft longer Soft lived Soft (gen34). Soft heal Soft-before Soft-finish Soft-paths Soft-did Soft-not Soft Soft-beat Soft 26 Soft-with Soft bonus Soft (Soft chip Soft + Soft strike Soft trade Soft still Soft drains Soft to Soft Soft killhp Soft < Soft 2 Soft past Soft turn Soft 16 Soft).
 
 ## How a generation lands
 

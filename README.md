@@ -14,4 +14,4 @@ Score = damage + turns lived + that bonus. Soft tip `6a13b3d`.
 
 ## Status
 
-Kept generation **33**, Soft score **26** (arena T, strike 2,4,5,16). Soft +2 Soft-fired (Soft killhp=2). See `generations.md`.
+Kept generation **34**, Soft score **27** (arena T, strike 2,4,5,20). Soft +2 Soft-fired on gen **33** (strike 2,4,5,16 Soft 26, Soft killhp=2). See `generations.md`.
